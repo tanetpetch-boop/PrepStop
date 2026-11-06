@@ -165,6 +165,15 @@ textarea{resize:vertical}
 .cr-row:hover td{background:var(--bg)}
 .cr-detail{background:#fafcfc}
 .cr td{vertical-align:middle}
+.umx{border-collapse:separate;border-spacing:3px;font-size:13px}
+.umx th{height:120px;vertical-align:bottom;padding:0;white-space:nowrap;font-weight:500;color:var(--ink2)}
+.umx th span{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);max-height:118px;overflow:hidden;text-overflow:ellipsis}
+.umx .un{white-space:nowrap;padding-right:8px;font-weight:600}
+.um{width:22px;height:22px;min-width:22px;border-radius:5px;background:#eef3f3;display:inline-block}
+td.um{display:table-cell}
+.um.pass{background:#13897a}.um.review{background:#e2a23b}.um.learn{background:#c8553d}
+.um.legend{width:14px;height:14px;min-width:14px;vertical-align:middle}
+.up{font-size:11px;text-align:center;color:var(--muted)}
 .print-only{display:none}
 @media print{
   header,nav,footer,#app>*:not(.print-only),.toast{display:none!important}
@@ -652,6 +661,10 @@ function rbPrintHTML(){
 /* ---------- 4) Item Analysis ---------- */
 const IA = { raw: load('ep_iaraw')||'', res:null, err:'' };
 function viewItems(){
+  if(IA.preset) return toolHead('Item Analysis') + `
+  <div class="panel"><div class="row" style="margin:0"><div><b style="margin:0">${esc(IA.preset.title)}</b><div class="muted">${esc(IA.preset.sub)}</div></div>
+    <a class="btn ghost sm" href="#results" style="margin-left:auto">← Class Results</a><button class="btn ghost sm" data-act="ia-clear">Use my own data</button></div></div>
+  <div id="ia-out"></div>`;
   return toolHead('Item Analysis') + `
   <div class="panel">
     <label class="lbl" for="ia-raw">Paste scores <small>— straight from Google Sheets / Excel, or upload a CSV</small></label>
@@ -666,7 +679,7 @@ function viewItems(){
   </div>
   <div id="ia-out"></div>`;
 }
-function mountItems(){ if(IA.raw.trim()) iaRun(true); }
+function mountItems(){ if(IA.preset){ IA.res=IA.preset.R; iaRender($('#ia-out')); } else if(IA.raw.trim()) iaRun(true); }
 
 function parseTable(text){
   text=text.replace(/\r/g,'');
@@ -692,26 +705,34 @@ function iaAnalyse(text){
   const key = keyRow ? keyRow.slice(1).map(s=>s.toUpperCase()) : null;
   const studs=rows.slice(1).filter(r=>r!==keyRow && r[0]!=='');
   if(studs.length<2) throw new Error('Need at least 2 students.');
-  const k=items.length, n=studs.length;
   const S=studs.map(r=>{
     const resp=items.map((_,i)=>String(r[i+1]??'').toUpperCase());
     const sc=resp.map((v,i)=> key ? (v!=='' && v===key[i] ? 1:0) : (Number(v)>0 ? 1:0));
-    return {name:r[0], resp, sc, total:sc.reduce((a,b)=>a+b,0)};
+    return {name:r[0], resp, sc};
   });
+  return iaCompute(items.map((name,i)=>({name, key:key?key[i]:'', mc:!!key})), S, !!key);
+}
+function iaCompute(meta, S, hasKey){
+  S.forEach(s=>s.total=s.sc.reduce((a,b)=>a+b,0));
+  const k=meta.length, n=S.length;
   const totals=S.map(s=>s.total), mean=totals.reduce((a,b)=>a+b,0)/n;
   const vr=totals.reduce((a,t)=>a+(t-mean)**2,0)/n, sd=Math.sqrt(vr);
   const sorted=S.slice().sort((a,b)=>b.total-a.total), g=Math.max(1,Math.round(n*0.27));
   const up=sorted.slice(0,g), lo=sorted.slice(-g);
   let spq=0;
-  const it=items.map((name,i)=>{
+  const it=meta.map((m,i)=>{
     const p=S.reduce((a,s)=>a+s.sc[i],0)/n; spq+=p*(1-p);
     const pu=up.reduce((a,s)=>a+s.sc[i],0)/g, pl=lo.reduce((a,s)=>a+s.sc[i],0)/g;
-    let opts=null;
-    if(key){ opts={}; S.forEach(s=>{const v=s.resp[i]||'—'; opts[v]=(opts[v]||0)+1;}); }
-    return {name,p,D:pu-pl,key:key?key[i]:'',opts};
+    let opts=null, key=m.key||'';
+    if(hasKey && m.mc){ opts={}; S.forEach(s=>{const v=s.resp[i]||'—'; opts[v]=(opts[v]||0)+1;}); }
+    else if(hasKey){ // open answer: correct count + most common wrong answers
+      const w={}; let c=0; S.forEach(s=>{ if(s.sc[i]) c++; else { const v=s.resp[i]||'—'; w[v]=(w[v]||0)+1; } });
+      opts={'Correct':c}; Object.keys(w).sort((a,b)=>w[b]-w[a]).slice(0,3).forEach(v=>opts['“'+v+'”']=w[v]); key='Correct';
+    }
+    return {name:m.name,label:m.label||'',p,D:pu-pl,key,keyShow:m.mc?key:(hasKey?'open':''),opts};
   });
   const kr20 = (k>1 && vr>0) ? (k/(k-1))*(1-spq/vr) : null;
-  return {k,n,mean,sd,kr20,items:it,students:sorted,hasKey:!!key};
+  return {k,n,mean,sd,kr20,items:it,students:sorted,hasKey};
 }
 const pTag=p=> p>0.8?'<span class="tag t-warn">Easy</span>':p<0.2?'<span class="tag t-bad">Very hard</span>':p<0.3?'<span class="tag t-warn">Hard</span>':'<span class="tag t-good">OK</span>';
 const dTag=d=> d<0?'<span class="tag t-bad">Negative — check key</span>':d<0.2?'<span class="tag t-bad">Revise</span>':d<0.3?'<span class="tag t-warn">Fair</span>':d<0.4?'<span class="tag t-ok">Good</span>':'<span class="tag t-good">Very good</span>';
@@ -722,6 +743,9 @@ function iaRun(quiet){
   const out=$('#ia-out');
   try{ IA.res=iaAnalyse(IA.raw); }
   catch(e){ IA.res=null; if(!quiet) out.innerHTML=`<div class="panel" style="color:#a2351f">${esc(e.message)}</div>`; return; }
+  iaRender(out);
+}
+function iaRender(out){
   const R=IA.res, flagged=R.items.filter(x=>x.D<0.2||x.p<0.2||x.p>0.9).length;
   out.innerHTML = `
   <div class="stats">
@@ -736,9 +760,9 @@ function iaRun(quiet){
   <div class="panel">
     <b>Questions</b>
     <div class="tblwrap"><table class="tbl"><thead><tr><th>Item</th>${R.hasKey?'<th>Key</th>':''}<th class="num">Difficulty p</th><th></th><th class="num">Discrimination D</th><th></th>${R.hasKey?'<th>Answers chosen</th>':''}</tr></thead>
-    <tbody>${R.items.map(x=>`<tr><td><b>${esc(x.name)}</b></td>${R.hasKey?`<td>${esc(x.key)}</td>`:''}
+    <tbody>${R.items.map(x=>`<tr><td><b>${esc(x.name)}</b>${x.label?`<br><span class="muted">${esc(x.label)}</span>`:''}</td>${R.hasKey?`<td>${esc(x.keyShow)}</td>`:''}
       <td class="num">${f2(x.p)}</td><td>${pTag(x.p)}</td><td class="num">${f2(x.D)}</td><td>${dTag(x.D)}</td>
-      ${R.hasKey?`<td>${Object.keys(x.opts).sort().map(o=>o===x.key?`<b>${esc(o)} ${x.opts[o]}✓</b>`:`${esc(o)} ${x.opts[o]}`).join(' · ')}</td>`:''}</tr>`).join('')}</tbody></table></div>
+      ${R.hasKey?`<td>${Object.keys(x.opts).sort().map(o=>o===x.key?`<b>${esc(o)} ${x.opts[o]} ✓</b>`:`${esc(o)} ${x.opts[o]}`).join(' · ')}</td>`:''}</tr>`).join('')}</tbody></table></div>
     <div class="muted" style="margin-top:8px">p = share of students who got it right. D = top 27% minus bottom 27% (≥ 0.30 is good; below 0.20 needs revising; negative usually means a wrong key or a confusing question).${R.hasKey?' In the answers column, a wrong option nobody picks is not working as a distractor.':''}</div>
     <div class="row"><button class="btn ghost sm" data-act="ia-copy">Copy results</button><button class="btn ghost sm" data-act="ia-dl">Download CSV</button></div>
   </div>
@@ -817,7 +841,7 @@ document.addEventListener('click', e=>{
     'rb-dell':()=>{const i=Number(b.dataset.i);RB.levels.splice(i,1);RB.criteria.forEach(c=>c.cells.splice(i,1));rbSave();rbTable();},
     'rb-print':()=>{rbPrintHTML();doPrint();},
     'rb-copy':()=>copyText(rbTSV()),
-    'ia-run':()=>iaRun(), 'ia-sample':iaSample,
+    'ia-run':()=>iaRun(), 'ia-sample':iaSample, 'ia-clear':()=>{IA.preset=null;IA.res=null;route();},
     'ia-copy':()=>IA.res?copyText(iaCSV().replace(/,/g,'\t')):toast('Analyse first'),
     'ia-dl':()=>IA.res?downloadText('item-analysis.csv',iaCSV()):toast('Analyse first'),
     'ia-tpl':()=>downloadText('scores-template.csv','Name,Q1,Q2,Q3,Q4,Q5\nKEY,A,B,C,D,A\nStudent 1,A,B,C,A,A\nStudent 2,B,B,C,D,C\n')
@@ -1113,7 +1137,7 @@ document.addEventListener('click',e=>{
 
 /* ================= CLASS RESULTS (teacher, PIN-protected) ================= */
 const CR = { pin: (()=>{ try{ return sessionStorage.getItem('ep_pin') || localStorage.getItem('ep_pin') || ''; }catch(e){ return ''; } })(),
-             sources:null, app: load('ep_crapp')||'', data:null, err:'', loading:false, sort:'latest', open:'', demo:false };
+             sources:null, app: load('ep_crapp')||'', subject: load('ep_crsubj')||'', data:null, sort:'latest', open:'', demo:false, kind:'', strand:'' };
 
 const DEMO_RESULTS = (()=>{
   const names=['Anna','Ben','Chloe','Daniel','Emma','Finn','Grace','Henry','Isla','Jack'];
@@ -1121,17 +1145,17 @@ const DEMO_RESULTS = (()=>{
   const doms=['Algebra','Advanced Math','Problem-Solving and Data Analysis','Geometry and Trigonometry'];
   const students=names.map((n,i)=>{
     const base=480+Math.round(r()*200), k=1+Math.floor(r()*4);
-    const mocks=Array.from({length:k},(_,j)=>({date:`2026-${String(8+j).padStart(2,'0')}-1${j}T10:00:00Z`,score:Math.min(800,Math.round((base+j*20+(r()-.4)*40)/10)*10),level:r()>.5?'hard':'easy'}));
+    const mocks=Array.from({length:k},(_,j)=>({date:`2026-${String(8+j).padStart(2,'0')}-1${j}T10:00:00Z`,score:Math.min(800,Math.round((base+j*20+(r()-.4)*40)/10)*10),form:'Random mock',correct:30+j,total:54,note:r()>.5?'Module 2: hard':'Module 2: easy'}));
     const sc=mocks.map(m=>m.score);
-    return {id:'S'+String(i+1).padStart(2,'0'),name:n,answers:80+Math.floor(r()*300),practice:50+Math.floor(r()*200),acc:45+Math.floor(r()*40),
-      last:`2026-11-0${1+Math.floor(r()*5)}T09:00:00Z`,mocks,latest:sc[sc.length-1],prev:sc.length>1?sc[sc.length-2]:null,best:Math.max(...sc),
+    return {id:'S'+String(i+1).padStart(2,'0'),name:n,answers:80+Math.floor(r()*300),acc:45+Math.floor(r()*40),
+      last:`2026-11-0${1+Math.floor(r()*5)}T09:00:00Z`,mocks,tests:[],latest:sc[sc.length-1],prev:sc.length>1?sc[sc.length-2]:null,best:Math.max(...sc),
       domains:doms.map(d=>({domain:d,n:40,pct:35+Math.floor(r()*55)}))};
   });
-  return {app:'SAT Math (demo)',type:'sat',students,
+  return {app:'SAT Math (demo)',type:'sat',scoreLabel:'SAT score',scoreMax:800,passMark:null,hasMocks:true,students,units:null,forms:[],
     domains:doms.map((d,i)=>({domain:d,n:900,pct:[68,57,62,49][i]})),
-    skills:[['Circles','Geometry and Trigonometry',31],['Nonlinear functions','Advanced Math',38],['Right triangles and trigonometry','Geometry and Trigonometry',42],['Probability','Problem-Solving and Data Analysis',47],['Equivalent expressions','Advanced Math',52]].map(([s,d,p])=>({skill:s,domain:d,n:40,students:9,pct:p})),
+    skills:[['Circles','Geometry and Trigonometry',31],['Nonlinear functions','Advanced Math',38],['Right triangles and trigonometry','Geometry and Trigonometry',42],['Probability','Problem-Solving and Data Analysis',47],['Equivalent expressions','Advanced Math',52]].map(([s,d,p])=>({skill:s,domain:d,n:40,pct:p})),
     hardest:[['SAT-0412','Circles','Hard',8,13],['SAT-0877','Nonlinear functions','Hard',7,14],['SAT-0150','Right triangles and trigonometry','Medium',9,22]].map(([id,s,d,n,p])=>({id,skill:s,difficulty:d,n,pct:p})),
-    totals:{answers:2450,mocks:24}};
+    totals:{answers:2450,mocks:24,tests:24}};
 })();
 
 async function crPost(body){
@@ -1142,6 +1166,8 @@ async function crPost(body){
 const fmtDate = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d) ? s : d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
 const daysAgo = s => { const d=new Date(s); return isNaN(d)?null:Math.floor((Date.now()-d)/864e5); };
 const barColor = p => p==null?'#cfd9d8':p>=70?'#13897a':p>=50?'#e2a23b':'#c8553d';
+const fmtScore = v => v==null ? '—' : (Math.round(v*10)/10).toString();
+const ST = {pass:['t-good','Pass'],review:['t-warn','Review'],learn:['t-bad','Learn']};
 
 function viewResults(){
   if(!CR.pin && !CR.demo) return `<h2 style="margin-top:0">Class Results</h2>
@@ -1156,6 +1182,7 @@ function viewResults(){
   </div>`;
   return `<div class="row" style="margin-top:0"><h2 style="margin:0">Class Results</h2>
     <select id="cr-app" style="width:auto;margin-left:auto">${(CR.sources||[]).map(s=>`<option ${s.name===CR.app?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+    <span id="cr-subj"></span>
     <button class="btn ghost sm" data-act="cr-refresh">↻ Refresh</button>
     <button class="btn ghost sm" data-act="cr-csv">⬇ CSV</button>
     <button class="btn ghost sm" data-act="cr-lock">🔒 Lock</button></div>
@@ -1176,7 +1203,12 @@ async function mountResults(){
     if(!CR.sources){ CR.sources=(await crPost({action:'sources'})).sources; route(); return; }
     if(!CR.sources.length){ $('#cr-body').innerHTML='<div class="panel">No apps in the <b>Sources</b> sheet yet.</div>'; return; }
     if(!CR.sources.some(s=>s.name===CR.app)) CR.app=CR.sources[0].name;
-    if(!CR.data || CR.data.app!==CR.app){ CR.data=(await crPost({action:'results',app:CR.app})).results; }
+    const sel=$('#cr-app'); if(sel) sel.value=CR.app;
+    if(!CR.data || CR.data.app!==CR.app || (CR.data.subjects && CR.data.subject!==CR.subject && CR.subject)){
+      $('#cr-body').innerHTML='<div class="empty">Loading results…</div>';
+      CR.data=(await crPost({action:'results',app:CR.app,subject:CR.subject})).results;
+      if(CR.data.subject) CR.subject=CR.data.subject;
+    }
     crRender();
   }catch(err){
     if(/PIN/i.test(err.message)){ crLock(); toast(err.message); return; }
@@ -1186,75 +1218,145 @@ async function mountResults(){
 function crLock(){ CR.pin=''; CR.sources=null; CR.data=null; CR.demo=false; try{sessionStorage.removeItem('ep_pin');localStorage.removeItem('ep_pin');}catch(e){} route(); }
 
 function spark(mocks){
-  const s=mocks.map(m=>m.score).filter(Boolean); if(s.length<2) return '';
-  const w=90,h=26,lo=Math.min(...s),hi=Math.max(...s),min=lo-20,max=hi+20, x=i=>i*(w/(s.length-1)), y=v=>h-(v-min)/(max-min)*h;
+  const s=mocks.map(m=>m.score).filter(v=>v!=null); if(s.length<2) return '';
+  const w=90,h=26,lo=Math.min(...s),hi=Math.max(...s),pad=(hi-lo)*0.15||1,min=lo-pad,max=hi+pad, x=i=>i*(w/(s.length-1)), y=v=>h-(v-min)/(max-min)*h;
   return `<svg width="${w}" height="${h}" viewBox="-2 -2 ${w+4} ${h+4}"><polyline fill="none" stroke="#13897a" stroke-width="2" points="${s.map((v,i)=>x(i)+','+y(v)).join(' ')}"/><circle cx="${x(s.length-1)}" cy="${y(s[s.length-1])}" r="2.5" fill="#13897a"/></svg>`;
 }
 function bars(list,label){
   return list.map(d=>`<div class="bar-row"><span title="${esc(d[label||'domain'])}">${esc(d[label||'domain'])}</span><div class="meter"><i style="width:${d.pct||0}%;background:${barColor(d.pct)}"></i></div><b>${d.pct==null?'—':d.pct+'%'}</b></div>`).join('');
 }
+const passTag = (D,v) => D.passMark && v!=null ? (v>=D.passMark?' <span class="tag t-good">Pass</span>':' <span class="tag t-bad">Below '+D.passMark+'</span>') : '';
+
+function crSubjectSelect(){
+  const el=$('#cr-subj'); if(!el) return;
+  const D=CR.data;
+  el.innerHTML = D && D.subjects ? `<select id="cr-subject" style="width:auto">${D.subjects.map(s=>`<option value="${s.key}" ${s.key===D.subject?'selected':''}>${esc(s.label)}</option>`).join('')}</select>` : '';
+}
+function crStudentDetail(D,s){
+  const units = D.units && s.units ? D.units.filter(u=>s.units[u.key]) : [];
+  return `<tr><td colspan="20" class="cr-detail"><div class="split" style="margin:0">
+    <div><b>Accuracy by ${D.units?'topic':'domain'}</b>${s.domains.length?bars(s.domains):'<p class="muted">No answers yet.</p>'}</div>
+    <div>${D.hasMocks?`<b>Mock history</b>${s.mocks.length?`<table class="tbl" style="margin-top:6px"><tr><th>Date</th><th>Test</th><th class="num">${esc(D.scoreLabel)}</th><th class="num">Correct</th></tr>${s.mocks.slice().reverse().map(m=>`<tr><td>${fmtDate(m.date)}</td><td>${esc(m.form)}${m.note?`<br><span class="muted">${esc(m.note)}</span>`:''}</td><td class="num">${fmtScore(m.score)}${passTag(D,m.score)}</td><td class="num">${m.correct}/${m.total}</td></tr>`).join('')}</table>`:'<p class="muted">No finished mocks yet.</p>'}`:''}
+    ${units.length?`<b style="display:block;margin-top:${D.hasMocks?14:0}px">Units</b><table class="tbl" style="margin-top:6px"><tr><th>Unit</th><th>Status</th><th class="num">Pre</th><th class="num">Post</th></tr>${units.map(u=>{const x=s.units[u.key];return `<tr><td>${esc(u.name)}</td><td><span class="tag ${ST[x.status]?ST[x.status][0]:'t-ok'}">${ST[x.status]?ST[x.status][1]:esc(x.status||'')}</span>${x.reached?` <span class="muted">G${x.reached}</span>`:''}</td><td class="num">${x.pre==null?'—':x.pre+'%'}</td><td class="num">${x.post==null?'—':x.post+'%'}</td></tr>`;}).join('')}</table>`:''}
+    ${!D.hasMocks && s.tests && s.tests.length?`<b style="display:block;margin-top:14px">Recent tests</b><table class="tbl" style="margin-top:6px"><tr><th>Date</th><th>Test</th><th class="num">Score</th></tr>${s.tests.slice(0,10).map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${esc(t.name)}</td><td class="num">${t.correct}/${t.total}</td></tr>`).join('')}</table>`:''}
+    </div></div></td></tr>`;
+}
 function crRender(){
   const D=CR.data, S=D.students.slice();
-  const key={latest:s=>s.latest||0, acc:s=>s.acc||0, name:s=>s.name, last:s=>s.last||'', answers:s=>s.answers, change:s=>s.latest&&s.prev?s.latest-s.prev:-999}[CR.sort];
+  crSubjectSelect();
+  if(!D.hasMocks && ['latest','change'].includes(CR.sort)) CR.sort = D.units ? 'pass' : 'acc';
+  const key={latest:s=>s.latest??-1e9, acc:s=>s.acc??-1, name:s=>s.name||'', last:s=>s.last||'', answers:s=>s.answers,
+    change:s=>s.latest!=null&&s.prev!=null?s.latest-s.prev:-1e9, pass:s=>s.unitCount?s.unitCount.pass:0, learn:s=>s.unitCount?s.unitCount.learn:0}[CR.sort];
   S.sort((a,b)=>{ const x=key(a),y=key(b); return typeof x==='string' ? (CR.sort==='name'?x.localeCompare(y):y.localeCompare(x)) : y-x; });
-  const withMock=D.students.filter(s=>s.latest), avg=withMock.length?Math.round(withMock.reduce((a,s)=>a+s.latest,0)/withMock.length/10)*10:null;
+  const withMock=D.students.filter(s=>s.latest!=null), avg=withMock.length?withMock.reduce((a,s)=>a+s.latest,0)/withMock.length:null;
   const acc=D.students.filter(s=>s.acc!=null), accAvg=acc.length?Math.round(acc.reduce((a,s)=>a+s.acc,0)/acc.length):null;
   const quiet=D.students.filter(s=>{const d=daysAgo(s.last);return d==null||d>=7;}).length;
+  const passing=D.passMark?withMock.filter(s=>s.latest>=D.passMark).length:null;
   const th=(k,t,cls)=>`<th class="${cls||''}" data-sort="${k}" style="cursor:pointer">${t}${CR.sort===k?' ▾':''}</th>`;
+  const cols = 4 + (D.hasMocks?5:0) + (D.units?3:0);
   $('#cr-body').innerHTML=`
   <div class="stats">
     <div class="stat"><span>Students</span><b>${D.students.length}</b></div>
     <div class="stat"><span>Answers logged</span><b>${D.totals.answers.toLocaleString()}</b></div>
     <div class="stat"><span>Class accuracy</span><b>${accAvg==null?'—':accAvg+'%'}</b></div>
-    <div class="stat"><span>Mocks finished</span><b>${D.totals.mocks}</b></div>
-    <div class="stat"><span>Avg latest mock</span><b>${avg??'—'}</b></div>
+    ${D.hasMocks?`<div class="stat"><span>Mocks finished</span><b>${D.totals.mocks}</b></div>
+    <div class="stat"><span>Avg latest score</span><b>${avg==null?'—':fmtScore(D.scoreMax>=200?Math.round(avg):avg)}</b></div>`
+    :`<div class="stat"><span>Tests finished</span><b>${D.totals.tests}</b></div>`}
+    ${D.passMark?`<div class="stat"><span>Passing now (≥${D.passMark})</span><b>${passing} / ${withMock.length}</b></div>`:''}
     <div class="stat"><span>Inactive 7+ days</span><b>${quiet}</b></div>
   </div>
   <div class="panel"><b>Students</b>
-    <div class="tblwrap"><table class="tbl cr"><thead><tr>${th('name','Student')}${th('answers','Answers','num')}${th('acc','Accuracy','num')}${th('last','Last active')}<th class="num">Mocks</th>${th('latest','Latest','num')}${th('change','Change','num')}<th>Trend</th><th class="num">Best</th></tr></thead>
-    <tbody>${S.map(s=>{ const ch=s.latest&&s.prev?s.latest-s.prev:null, d=daysAgo(s.last);
+    <div class="tblwrap"><table class="tbl cr"><thead><tr>${th('name','Student')}${th('answers','Answers','num')}${th('acc','Accuracy','num')}${th('last','Last active')}
+      ${D.hasMocks?`<th class="num">Mocks</th>${th('latest','Latest','num')}${th('change','Change','num')}<th>Trend</th><th class="num">Best</th>`:''}
+      ${D.units?`${th('pass','Units passed','num')}<th class="num">Review</th>${th('learn','To learn','num')}`:''}</tr></thead>
+    <tbody>${S.map(s=>{ const ch=s.latest!=null&&s.prev!=null?Math.round((s.latest-s.prev)*10)/10:null, d=daysAgo(s.last);
       return `<tr class="cr-row" data-sid="${esc(s.id)}"><td><b>${esc(s.name||s.id)}</b> <span class="muted">${esc(s.id)}</span></td>
       <td class="num">${s.answers}</td><td class="num">${s.acc==null?'—':s.acc+'%'}</td>
       <td>${fmtDate(s.last)}${d!=null&&d>=7?' <span class="tag t-warn">'+d+'d</span>':''}</td>
-      <td class="num">${s.mocks.length}</td><td class="num"><b>${s.latest??'—'}</b></td>
+      ${D.hasMocks?`<td class="num">${s.mocks.length}</td><td class="num"><b>${fmtScore(s.latest)}</b>${passTag(D,s.latest)}</td>
       <td class="num">${ch==null?'':ch>0?`<span class="tag t-good">▲ ${ch}</span>`:ch<0?`<span class="tag t-bad">▼ ${-ch}</span>`:'<span class="tag t-ok">0</span>'}</td>
-      <td>${spark(s.mocks)}</td><td class="num">${s.best??'—'}</td></tr>
-      ${CR.open===s.id?`<tr><td colspan="9" class="cr-detail"><div class="split" style="margin:0">
-        <div><b>Accuracy by domain</b>${bars(s.domains)}</div>
-        <div><b>Mock history</b>${s.mocks.length?`<table class="tbl" style="margin-top:6px"><tr><th>Date</th><th class="num">Score</th><th>Module 2</th></tr>${s.mocks.slice().reverse().map(m=>`<tr><td>${fmtDate(m.date)}</td><td class="num">${m.score??'—'}</td><td>${esc(m.level||'')}</td></tr>`).join('')}</table>`:'<p class="muted">No finished mocks yet.</p>'}</div>
-      </div></td></tr>`:''}`; }).join('')}</tbody></table></div>
-    <div class="muted" style="margin-top:6px">Tap a student for details. Accuracy counts practice and mock answers together.</div>
+      <td>${spark(s.mocks)}</td><td class="num">${fmtScore(s.best)}</td>`:''}
+      ${D.units?`<td class="num"><span class="tag t-good">${s.unitCount.pass}</span></td><td class="num"><span class="tag t-warn">${s.unitCount.review}</span></td><td class="num"><span class="tag t-bad">${s.unitCount.learn}</span></td>`:''}</tr>
+      ${CR.open===s.id?crStudentDetail(D,s):''}`; }).join('')}</tbody></table></div>
+    <div class="muted" style="margin-top:6px">Tap a student for details.${D.type==='ssat'?' Raw score = right − ¼ × wrong (blank = 0).':''}${D.units?' Unit status comes from the latest placement, progress, pre- or end-of-unit test.':''}</div>
   </div>
+  ${D.units?crUnitsMatrix(D):''}
+  ${D.forms&&D.forms.length?crForms(D):''}
   <div class="split" style="margin-top:0">
-    <div class="panel"><b>Class accuracy by domain</b>${bars(D.domains)}</div>
-    <div class="panel"><b>Weakest skills</b>${D.skills.length?bars(D.skills,'skill'):'<p class="muted">Not enough answers yet.</p>'}<div class="muted">Skills with at least 5 answers.</div></div>
+    <div class="panel"><b>Class accuracy by ${D.units?'topic':'domain'}</b>${bars(D.domains)}</div>
+    <div class="panel"><b>Weakest ${D.units?'units':'skills'}</b>${D.skills.length?bars(D.skills,'skill'):'<p class="muted">Not enough answers yet.</p>'}<div class="muted">With at least 5 answers.</div></div>
   </div>
   <div class="panel"><b>Hardest questions</b>
-    ${D.hardest.length?`<div class="tblwrap"><table class="tbl"><thead><tr><th>Question</th><th>Skill</th><th>Difficulty</th><th class="num">Answers</th><th class="num">Correct</th></tr></thead>
+    ${D.hardest.length?`<div class="tblwrap"><table class="tbl"><thead><tr><th>Question</th><th>${D.units?'Unit':'Skill'}</th><th>Difficulty</th><th class="num">Answers</th><th class="num">Correct</th></tr></thead>
     <tbody>${D.hardest.map(q=>`<tr><td><code>${esc(q.id)}</code></td><td>${esc(q.skill)}</td><td>${esc(q.difficulty)}</td><td class="num">${q.n}</td><td class="num"><span class="tag ${q.pct<30?'t-bad':q.pct<50?'t-warn':'t-ok'}">${q.pct}%</span></td></tr>`).join('')}</tbody></table></div>
-    <div class="muted" style="margin-top:6px">Questions answered at least 3 times. A very low score on an Easy or Medium question is worth checking for a wrong key.</div>`:'<p class="muted">Not enough answers yet.</p>'}
+    <div class="muted" style="margin-top:6px">Questions answered at least 3 times. A very low score on an easy question is worth checking for a wrong key.</div>`:'<p class="muted">Not enough answers yet.</p>'}
   </div>
-  <div class="muted">Updated ${D.updated?new Date(D.updated).toLocaleTimeString():'—'} · SAT mocks are randomised per student, so classic item analysis by test isn't used here — the question and skill tables above do that job.</div>`;
+  <div class="muted">Updated ${D.updated?new Date(D.updated).toLocaleTimeString():'—'}${D.type==='sat'?' · SAT mocks are randomised per student, so item analysis by test isn\'t available — the skill and question tables do that job.':''}${D.type==='ssat'?' · Item analysis is available for fixed forms only; random mocks differ per student.':''}</div>`;
+}
+function crForms(D){
+  const kinds=[...new Set(D.forms.map(f=>f.kind))];
+  if(CR.kind && !kinds.includes(CR.kind)) CR.kind='';
+  if(!CR.kind) CR.kind = kinds.includes('mock') ? 'mock' : kinds[0];
+  const KL={mock:'Mocks',place:'Placement',pretest:'Subject pre-test',pre:'Pre-tests',post:'End-of-unit'};
+  const list=D.forms.filter(f=>f.kind===CR.kind);
+  return `<div class="panel"><b>Test forms — item analysis</b>
+    ${kinds.length>1?`<div class="filters" style="margin-bottom:10px">${kinds.map(k=>`<button data-kind="${k}" class="${k===CR.kind?'on':''}">${KL[k]||k}</button>`).join('')}</div>`:''}
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>Test</th><th class="num">Questions</th><th class="num">Students</th><th class="num">Average</th>${D.passMark?'<th class="num">Pass rate</th>':''}<th></th></tr></thead>
+    <tbody>${list.map(f=>`<tr><td><b>${esc(f.name)}</b></td><td class="num">${f.questions}</td><td class="num">${f.students}</td><td class="num">${fmtScore(f.avg)}${D.scoreMax===100||D.units?'':''}</td>${D.passMark?`<td class="num">${f.passRate==null?'—':f.passRate+'%'}</td>`:''}
+      <td><button class="btn ghost sm" data-act="cr-form" data-form="${esc(f.form)}" data-name="${esc(f.name)}">📊 Analyse</button></td></tr>`).join('')}</tbody></table></div>
+    <div class="muted" style="margin-top:6px">Uses each student's first attempt, so retakes don't inflate the numbers.</div></div>`;
+}
+function crUnitsMatrix(D){
+  const strands=[...new Set(D.units.map(u=>u.strand).filter(Boolean))];
+  if(CR.strand && !strands.includes(CR.strand)) CR.strand='';
+  const units=D.units.filter(u=>!CR.strand||u.strand===CR.strand);
+  const S=D.students.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const cell=x=>!x?'<td class="um"></td>':`<td class="um ${x.status}" title="${esc((ST[x.status]||[])[1]||x.status)}${x.pct!=null?' · '+x.pct+'%':''}"></td>`;
+  return `<div class="panel"><b>Units overview</b>
+    ${strands.length>1?`<div class="filters" style="margin-bottom:10px"><button data-strand="" class="${!CR.strand?'on':''}">All</button>${strands.map(s=>`<button data-strand="${esc(s)}" class="${s===CR.strand?'on':''}">${esc(s)}</button>`).join('')}</div>`:''}
+    <div class="tblwrap"><table class="umx"><thead><tr><th></th>${units.map(u=>`<th title="${esc(u.name)}"><span>${esc(u.name)}</span></th>`).join('')}</tr></thead>
+    <tbody>${S.map(s=>`<tr><td class="un">${esc(s.name||s.id)}</td>${units.map(u=>cell(s.units&&s.units[u.key])).join('')}</tr>`).join('')}
+    <tr><td class="un muted">Class pass rate</td>${units.map(u=>{const xs=S.map(s=>s.units&&s.units[u.key]).filter(Boolean);const p=xs.length?Math.round(100*xs.filter(x=>x.status==='pass').length/xs.length):null;return `<td class="up">${p==null?'':p}</td>`;}).join('')}</tr></tbody></table></div>
+    <div class="row muted" style="font-size:13px"><span class="um pass legend"></span> Pass <span class="um review legend"></span> Review <span class="um learn legend"></span> Learn <span class="um legend"></span> Not tested yet</div></div>`;
+}
+async function crOpenForm(form,name){
+  toast('Loading '+name+'…');
+  try{
+    const F=(await crPost({action:'form',app:CR.app,form,subject:CR.subject})).form;
+    const meta=F.items.map((it,i)=>({name:'Q'+(i+1), label:[it.label,it.difficulty].filter(Boolean).join(' · '), key:it.mc?it.key:'', mc:it.mc}));
+    const S=F.students.map(s=>({name:s.name, resp:s.resp.map(x=>String(x).toUpperCase()), sc:s.sc}));
+    if(S.length<2){ toast('Need at least 2 students who finished this test'); return; }
+    IA.preset={title:CR.app+' · '+F.name, sub:`${S.length} students (first attempts) · ${meta.length} questions`, R:iaCompute(meta,S,true)};
+    location.hash='#tool-items';
+  }catch(err){ toast(err.message); }
 }
 function crCSV(){
   const D=CR.data; if(!D) return '';
   const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
-  return ['Student ID,Name,Answers,Accuracy %,Last active,Mocks,Latest,Previous,Best',
-    ...D.students.map(s=>[q(s.id),q(s.name),s.answers,s.acc??'',q((s.last||'').slice(0,10)),s.mocks.length,s.latest??'',s.prev??'',s.best??''].join(','))].join('\n');
+  return ['Student ID,Name,Answers,Accuracy %,Last active'+(D.hasMocks?',Mocks,Latest,Previous,Best':'')+(D.units?',Units passed,Review,To learn':''),
+    ...D.students.map(s=>[q(s.id),q(s.name),s.answers,s.acc??'',q((s.last||'').slice(0,10))]
+      .concat(D.hasMocks?[s.mocks.length,s.latest??'',s.prev??'',s.best??'']:[])
+      .concat(D.units?[s.unitCount.pass,s.unitCount.review,s.unitCount.learn]:[]).join(','))].join('\n');
 }
 document.addEventListener('click',e=>{
   const th=e.target.closest('th[data-sort]'); if(th && CR.data){ CR.sort=th.dataset.sort; crRender(); return; }
+  const kb=e.target.closest('[data-kind]'); if(kb && CR.data){ CR.kind=kb.dataset.kind; crRender(); return; }
+  const sb=e.target.closest('[data-strand]'); if(sb && CR.data){ CR.strand=sb.dataset.strand; crRender(); return; }
   const row=e.target.closest('.cr-row'); if(row){ CR.open = CR.open===row.dataset.sid ? '' : row.dataset.sid; crRender(); return; }
   const b=e.target.closest('[data-act]'); if(!b) return;
   const acts={
     'cr-demo':()=>{ CR.demo=true; route(); },
     'cr-refresh':()=>{ CR.data=null; route(); },
     'cr-lock':crLock,
+    'cr-form':()=>CR.demo?toast('Item analysis needs real data'):crOpenForm(b.dataset.form,b.dataset.name),
     'cr-csv':()=>CR.data?downloadText(`class-results-${(CR.app||'app').replace(/\W+/g,'-')}.csv`,crCSV()):toast('Nothing to export')
   };
   if(acts[b.dataset.act]){ e.preventDefault(); acts[b.dataset.act](); }
 });
-document.addEventListener('change',e=>{ if(e.target.id==='cr-app'){ CR.app=e.target.value; save('ep_crapp',CR.app); CR.data=null; route(); } });
+document.addEventListener('change',e=>{
+  if(e.target.id==='cr-app'){ CR.app=e.target.value; save('ep_crapp',CR.app); CR.data=null; CR.open=''; CR.kind=''; CR.strand=''; CR.subject=''; route(); }
+  if(e.target.id==='cr-subject'){ CR.subject=e.target.value; save('ep_crsubj',CR.subject); CR.data=null; CR.open=''; CR.kind=''; route(); }
+});
 
 /* ===== router ===== */
 function route(){
