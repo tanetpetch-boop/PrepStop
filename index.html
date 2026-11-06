@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrepStop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0d3b3e; --ink2:#2f5a5c; --muted:#5f7a7b;
+  --bg:#f3f8f7; --card:#ffffff; --line:#d8e7e4;
+  --accent:#5fd3bc; --accent-soft:#dff5f0; --accent-ink:#0b6b5c;
+  --blue:#13897a; --blue-soft:#e3f3f0;
+  --r:14px; --shadow:0 1px 2px rgba(13,59,62,.06),0 4px 14px rgba(13,59,62,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+
+/* header */
+header{position:sticky;top:0;z-index:10;background:rgba(243,248,247,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{max-width:1080px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:18px;margin-right:auto}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:var(--accent);font-weight:700}
+.role{display:flex;background:#e1eeeb;border-radius:999px;padding:3px}
+.role button{border:0;background:transparent;padding:5px 14px;border-radius:999px;font-size:14px;color:var(--ink2)}
+.role button.on{background:var(--ink);color:#fff}
+nav{max-width:1080px;margin:0 auto;padding:0 12px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav a{white-space:nowrap;text-decoration:none;padding:9px 12px;font-size:15px;color:var(--muted);border-bottom:2px solid transparent}
+nav a.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+
+main{max-width:1080px;margin:0 auto;padding:22px 18px 60px}
+.demo{background:var(--accent-soft);color:var(--accent-ink);border-radius:10px;padding:9px 14px;font-size:14px;margin-bottom:18px}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#0d3b3e 0%,#13897a 100%);color:#fff;border-radius:20px;padding:34px 28px;position:relative;overflow:hidden}
+.hero h1{margin:0 0 6px;font-size:clamp(26px,5vw,38px);line-height:1.25}
+.hero p{margin:0;color:#d4efe9;max-width:560px}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:var(--accent);opacity:.18}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+.door{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);text-decoration:none;display:block}
+.door b{font-size:18px;display:block;margin-bottom:2px}
+.door span{color:var(--muted);font-size:14px}
+.door .go{margin-top:12px;color:var(--blue);font-weight:600;font-size:14px}
+
+h2{font-size:21px;margin:30px 0 12px;display:flex;align-items:baseline;gap:10px}
+h2 a{font-size:14px;font-weight:500;color:var(--blue);margin-left:auto;text-decoration:none}
+
+/* grids & cards */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.app{padding:18px;gap:6px}
+.app .ic{font-size:30px;line-height:1}
+.app b{font-size:17px}
+.app p{margin:0;color:var(--muted);font-size:14px;flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:9px 14px;background:var(--ink);color:#fff;text-decoration:none;font-size:14px;font-weight:600}
+.btn.ghost{background:var(--blue-soft);color:var(--blue)}
+.chip{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);margin-right:4px}
+.chip.alt{background:var(--accent-soft);color:var(--accent-ink)}
+
+.vid{text-decoration:none;cursor:pointer}
+.thumb{aspect-ratio:16/9;background:linear-gradient(135deg,#17696a,#0d3b3e);position:relative;display:grid;place-items:center;color:#fff}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb .play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:18px;position:relative}
+.thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);font-size:12px;padding:1px 6px;border-radius:5px}
+.vid .meta{padding:12px 14px}
+.vid b{display:block;font-size:15px;line-height:1.4;margin-bottom:6px}
+
+/* filters */
+.tools{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+.filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filters button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:14px;color:var(--ink2)}
+.filters button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* video detail */
+.player{aspect-ratio:16/9;background:#000;border-radius:var(--r);overflow:hidden;display:grid;place-items:center;color:#d4efe9;text-align:center;padding:0}
+.player iframe{width:100%;height:100%;border:0}
+.detail{display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.detail{grid-template-columns:minmax(0,1fr) 300px}}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.toc button{display:flex;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:8px;color:var(--ink)}
+.toc button:hover{background:var(--bg)}
+.toc .t{font-variant-numeric:tabular-nums;color:var(--blue);font-weight:600;min-width:52px}
+.back{display:inline-block;margin-bottom:12px;color:var(--blue);text-decoration:none;font-size:14px}
+
+.soon{opacity:.75}
+.soon .badge{font-size:12px;background:var(--accent-soft);color:var(--accent-ink);padding:2px 8px;border-radius:999px;align-self:flex-start}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:24px}
+/* ---- tools ---- */
+.tool-card{text-decoration:none}
+.tool2{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:860px){.tool2{grid-template-columns:320px minmax(0,1fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.panel>b{display:block;font-size:16px;margin-bottom:10px}
+.lbl{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.lbl small,.muted{color:var(--muted);font-weight:400;font-size:13px}
+textarea,select,input[type=text],input[type=number]{font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink);width:100%}
+textarea{resize:vertical}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.row select,.row input{width:auto}
+.chk{display:flex;align-items:center;gap:6px;font-size:14px}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.warn{background:#fbe9e7;color:#a2351f}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:14px;z-index:99;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.groups{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-top:10px}
+.group{background:var(--accent-soft);border-radius:12px;padding:10px 12px}
+.group b{color:var(--accent-ink);display:block;margin-bottom:4px}
+.group div{font-size:15px}
+.pick{font-size:clamp(34px,7vw,56px);font-weight:700;text-align:center;padding:22px 10px;border-radius:14px;background:var(--bg);margin-bottom:6px;min-height:1.6em;color:var(--ink)}
+.pick.spin{color:var(--muted)}
+/* tables */
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{border-collapse:collapse;width:100%;font-size:14px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:7px 9px;vertical-align:top;text-align:left}
+.tbl th{background:var(--blue-soft);font-weight:600}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.rb td textarea{min-width:150px;min-height:70px;border:0;padding:4px;font-size:13px}
+.rb input{border:0;padding:4px;font-weight:600}
+.rb .x{border:0;background:transparent;color:#a2351f;font-size:16px;padding:0 4px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.t-good{background:#dff5f0;color:#0b6b5c}.t-ok{background:#eef3f3;color:#4a6365}
+.t-warn{background:#fff2d9;color:#8a5a00}.t-bad{background:#fbe9e7;color:#a2351f}
+.stats{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat span{display:block;font-size:12px;color:var(--muted)}
+.stat b{font-size:22px}
+/* teleprompter */
+.prompter{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}
+.pr-scroll{flex:1;overflow-y:auto;scrollbar-width:none}
+.pr-text{color:#fff;padding:50vh 8vw;white-space:pre-wrap;line-height:1.45;font-weight:500}
+.pr-text.mirror{transform:scaleX(-1)}
+.pr-guide{position:absolute;left:0;right:0;top:calc(50% - 2px);height:4px;background:rgba(95,211,188,.35);pointer-events:none}
+.pr-bar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:10px;background:#0d3b3e}
+.pr-bar button{border:0;border-radius:9px;padding:8px 12px;background:#13897a;color:#fff;font-size:14px}
+.pr-bar span{color:#d4efe9;font-size:13px;align-self:center;min-width:90px;text-align:center}
+.paper{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);padding:34px 38px;margin-bottom:16px;color:#111}
+.paper h1{font-size:22px;margin:0 0 4px}
+.ph{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px}
+.ph-r{font-size:14px;line-height:2}
+.pi{font-style:italic;margin:0 0 14px}
+.wq{break-inside:avoid;margin-bottom:18px}
+.wq-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 16px;margin:6px 0 0 22px}
+.wq-l div{border-bottom:1px solid #999;height:28px;margin-left:22px}
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:12px}
+.article p,.article li{color:var(--ink2)}
+.article h3,.article h4{margin:18px 0 6px}
+.article code{background:var(--bg);padding:1px 5px;border-radius:5px}
+@media print{
+  .print-only .paper{border:0;box-shadow:none;padding:0;margin:0}
+  .print-only .keypage{break-before:page}
+}
+.print-only{display:none}
+@media print{
+  header,nav,footer,#app>*:not(.print-only),.toast{display:none!important}
+  body{background:#fff}
+  .print-only{display:block!important}
+  .print-only .tbl th{background:#eee}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="#home"><span class="logo">PS</span><span id="siteName">PrepStop</span></a>
+    <div class="role" role="group" aria-label="I am a">
+      <button data-role="student">Student</button>
+      <button data-role="teacher">Teacher</button>
+    </div>
+  </div>
+  <nav id="nav">
+    <a href="#home" data-v="home">Home</a>
+    <a href="#apps" data-v="apps">Practice Apps</a>
+    <a href="#videos" data-v="videos">Video Library</a>
+    <a href="#tools" data-v="tools" class="t-only">Teacher Tools</a>
+    <a href="#guides" data-v="guides" class="t-only">Guides</a>
+    <a href="#prompts" data-v="prompts" class="t-only">AI Prompts</a>
+  </nav>
+</header>
+
+<main id="app"><div class="empty">Loading…</div></main>
+<footer id="foot"></footer>
+
+<script>
+/* ===== ตั้งค่า: วาง Web app URL จาก Apps Script ตรงนี้ ===== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzkY9UFE3wh9M-Y6aPhB2Da1Dx1ydyzLn68tA98xXSj1bAWXBc-JT_avN5qFR6w7boJrA/exec'; // เช่น 'https://script.google.com/macros/s/XXXX/exec'
+
+/* ===== ข้อมูลตัวอย่าง (ใช้เมื่อยังไม่ได้ใส่ API_URL) ===== */
+const DEMO = {
+  settings:{SiteName:'PrepStop',Tagline:'Your one-stop exam prep — practice apps, video lessons and teacher tools in one place.',
+    StudentIntro:'Practise real-style questions, review with videos and track your progress.',TeacherIntro:'Ready-to-use tools, guides and AI workflows for teaching.',Contact:'LINE: @yourline'},
+  apps:[
+    {Order:1,Name:'SAT Math Practice',Description:'Question bank, mock tests and a personal study plan',URL:'#',Subject:'SAT',Audience:'student',Icon:'📘'},
+    {Order:2,Name:'SSAT Math',Description:'8 fixed mocks plus random mocks for Grade 7',URL:'#',Subject:'SSAT',Audience:'student',Icon:'📗'},
+    {Order:3,Name:'GED Math',Description:'Mathematical Reasoning — 9 mock tests',URL:'#',Subject:'GED',Audience:'student',Icon:'📙'},
+    {Order:4,Name:'A-Level Math + Physics',Description:'Thai-language exams, 9 mocks per subject',URL:'#',Subject:'A-Level',Audience:'student',Icon:'📕'},
+    {Order:5,Name:'Basic Math (Thai)',Description:'Placement test and timed tests',URL:'#',Subject:'Basic Math',Audience:'student',Icon:'🧮'},
+    {Order:6,Name:'Basic Math (English)',Description:'Placement test + timed tests',URL:'#',Subject:'Basic Math',Audience:'student',Icon:'🔢'}
+  ],
+  videos:[
+    {Order:1,Title:'Linear Equations and Slope',YouTubeURL:'',Subject:'SAT',Chapter:'Linear Equations',Level:'Basic',Duration:'18:45',Timestamps:'00:00 Introduction\n03:20 Slope\n09:10 Worked examples\n15:40 Speed tricks',Audience:'all',Tags:'algebra slope'},
+    {Order:2,Title:'Systems of Two Equations',YouTubeURL:'',Subject:'SAT',Chapter:'Linear Equations',Level:'Intermediate',Duration:'22:05',Timestamps:'00:00 Substitution\n08:30 Elimination',Audience:'student',Tags:'system'},
+    {Order:3,Title:'Forces and Newton’s Laws',YouTubeURL:'',Subject:'Physics',Chapter:'Forces',Level:'Intermediate',Duration:'25:10',Timestamps:'00:00 First law\n07:15 Second law\n16:00 Problems',Audience:'student',Tags:'newton'},
+    {Order:4,Title:'Percent and Ratio',YouTubeURL:'',Subject:'Basic Math',Chapter:'Percent',Level:'Basic',Duration:'12:30',Timestamps:'00:00 Key ideas\n05:00 Discount problems',Audience:'all',Tags:'percent ratio'},
+    {Order:5,Title:'Build a Worksheet with AI in 10 Minutes',YouTubeURL:'',Subject:'For Teachers',Chapter:'AI Workflow',Level:'',Duration:'10:12',Timestamps:'00:00 Preparing the prompt\n04:30 Checking answers',Audience:'teacher',Tags:'ai worksheet'}
+  ]
+};
+
+DEMO.guides = [
+  {Order:1,Category:'Getting started',Title:'How to use PrepStop',Summary:'A two-minute tour of the apps, videos and teacher tools.',Audience:'teacher',
+   Body:"You don't need to read everything. Open the part that matches the job in front of you.\n\n## Students\n- **Practice Apps** — each exam has its own app with a question bank and mock tests.\n- **Video Library** — lessons grouped by subject and chapter. Tap a time in *In this video* to jump to that part.\n\n## Teachers\n- **Teacher Tools** — groups, teleprompter, rubrics, item analysis, screencast and worksheets.\n- **AI Prompts** — fill-in-the-blank prompts that produce output ready for the tools.\n- **Guides** — short how-to notes like this one.\n\nEverything you type into a tool is remembered on this device."},
+  {Order:2,Category:'Assessment',Title:'Writing good multiple-choice questions',Summary:'Seven habits that make questions fair and informative.',Audience:'teacher',
+   Body:"1. Test one idea per question.\n2. Put the problem in the stem, not in the choices.\n3. Make every distractor a **real mistake** students make (sign error, wrong formula, unit slip).\n4. Keep choices similar in length and style.\n5. Avoid *all of the above* and *none of the above*.\n6. Order numeric answers from smallest to largest.\n7. After the test, run [Item Analysis](#tool-items) — a distractor nobody picks should be rewritten."},
+  {Order:3,Category:'Assessment',Title:'Reading your item analysis',Summary:'What difficulty, discrimination and KR-20 tell you — and what to do next.',Audience:'teacher',
+   Body:"## Difficulty (p)\nThe share of students who answered correctly. Between **0.30 and 0.80** is usually useful. Very easy items are fine for warm-ups; very hard ones may need reteaching.\n\n## Discrimination (D)\nTop group minus bottom group. **0.30 or more** is good. Below 0.20, revise the question. A **negative** value usually means the answer key is wrong or the wording misleads strong students.\n\n## KR-20\nOverall consistency of the test. Around 0.70+ is good for a class test; short quizzes score lower naturally.\n\n## Next steps\n- Fix keys first.\n- Rewrite weak distractors.\n- Reteach topics where p is low *and* D is good — the question works, students don't know it yet."},
+  {Order:4,Category:'Video',Title:'Recording a lesson video',Summary:'Script, record and publish a short lesson in one sitting.',Audience:'teacher',
+   Body:"1. Ask AI for a script with the [Video script prompt](#prompt-4).\n2. Open the [Teleprompter](#tool-prompter) in one window and your slides in another.\n3. Record with [Screencast](#tool-screencast) — share the slides window, keep the camera bubble on.\n4. Upload the file to YouTube as **Unlisted**.\n5. Add it to the Videos sheet with time stamps so students can jump to each part."},
+  {Order:5,Category:'Using AI',Title:'Using AI safely with student data',Summary:'Simple rules for privacy when you use AI tools.',Audience:'teacher',
+   Body:"- Use nicknames or codes, never full names with grades or personal details.\n- Remove ID numbers, phone numbers and parent details before pasting.\n- Check every AI answer — especially answer keys and calculations.\n- Keep the final judgement on marks and reports with you."}
+];
+DEMO.prompts = [
+  {Order:1,Category:'Worksheets',Title:'Multiple-choice questions for the Worksheet Builder',Description:'Get questions in the exact format the Worksheet Builder reads.',Audience:'teacher',Next:'#tool-worksheet',
+   Prompt:"Write {{Number of questions}} multiple-choice questions on {{Topic}} for {{Level}} students.\nDifficulty: {{Difficulty}}.\n\nFormat each question exactly like this, with a blank line between questions:\n1. Question text\nA) choice\nB) choice\nC) choice\nD) choice\n\nPut * at the end of the correct choice. Write math between $ signs, e.g. $x^2 + 3x$.\nMake each wrong choice a mistake students commonly make. Output only the questions."},
+  {Order:2,Category:'Assessment',Title:'Rubric criteria',Description:'Draft criteria and level descriptors for any task.',Audience:'teacher',Next:'#tool-rubric',
+   Prompt:"Create a rubric for this task: {{Task}}\nStudents: {{Level}}\nUse {{Number of criteria}} criteria and 4 levels (Excellent 4, Good 3, Fair 2, Needs work 1).\nFor each criterion give one short, observable descriptor per level.\nOutput a table: Criterion | Excellent | Good | Fair | Needs work."},
+  {Order:3,Category:'Assessment',Title:'Act on item analysis results',Description:'Turn weak questions and low scores into a reteach plan.',Audience:'teacher',
+   Prompt:"I gave a {{Subject}} test to {{Level}} students. These questions had problems (difficulty p, discrimination D, and the answers students chose):\n{{Paste flagged questions}}\n\nFor each question: say whether the issue is the question itself or the students' understanding, suggest a rewrite if needed, and give one 5-minute reteach activity for the misconception."},
+  {Order:4,Category:'Video',Title:'Video lesson script',Description:'A spoken script ready for the Teleprompter.',Audience:'teacher',Next:'#tool-prompter',
+   Prompt:"Write a spoken script for a {{Length in minutes}}-minute video lesson on {{Topic}} for {{Level}} students.\nStyle: friendly, clear, short sentences.\nStructure: hook, key idea, 2 worked examples, common mistake, 30-second recap.\nMark slide changes as [SLIDE]. Output only the script."},
+  {Order:5,Category:'Planning',Title:'One-lesson plan',Description:'Objectives, timing and activities for a single lesson.',Audience:'teacher',
+   Prompt:"Plan a {{Lesson length}} lesson on {{Topic}} for {{Level}} students.\nInclude: learning objectives, a starter, main activities with timings, one group activity, a check for understanding, and homework.\nKeep it practical and in a table where helpful."},
+  {Order:6,Category:'Communication',Title:'Progress note to a parent',Description:'A short, warm, specific update about a student.',Audience:'teacher',
+   Prompt:"Write a short progress note to a parent about their child ({{Student nickname}}) in {{Subject}}.\nStrengths: {{Strengths}}\nTo work on: {{Areas to improve}}\nTone: warm and specific, 120 words max, in {{Language}}."}
+];
+
+const TOOLS = [
+  {id:'groups',  ic:'🎲',name:'Group Maker & Name Picker',desc:'Random groups by size, or pick a student at random',ready:true},
+  {id:'prompter',ic:'📜',name:'Teleprompter',desc:'Read your script while recording, with adjustable speed',ready:true},
+  {id:'rubric',  ic:'📏',name:'Rubric Builder',desc:'Set criteria and score levels, ready to print',ready:true},
+  {id:'items',   ic:'📊',name:'Item Analysis',desc:'Difficulty and discrimination from a score file',ready:true},
+  {id:'screencast',ic:'🎥',name:'Screencast',desc:'Record screen, camera and mic',ready:true},
+  {id:'worksheet',ic:'📝',name:'Worksheet Builder',desc:'Type or paste questions, get a printable worksheet and answer key',ready:true}
+];
+
+/* ===== state ===== */
+let DATA = null, isDemo = false;
+let role = load('ep_role') || 'student';
+let vFilter = 'All', vQuery = '';
+
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = s => document.querySelector(s);
+
+function visible(item){
+  const a = String(item.Audience||'all').toLowerCase().trim();
+  return a==='' || a==='all' || a===role;
+}
+function ytId(url){
+  url = String(url||'').trim();
+  if(/^[\w-]{11}$/.test(url)) return url;
+  const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/);
+  return m ? m[1] : '';
+}
+function toSec(t){
+  const p = t.split(':').map(Number);
+  return p.length===3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1];
+}
+function parseToc(text){
+  return String(text||'').split(/\n|;/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m = l.match(/^((?:\d{1,2}:)?\d{1,2}:\d{2})\s*[-–:]?\s*(.*)$/);
+    return m ? {t:m[1], s:toSec(m[1]), label:m[2]||''} : null;
+  }).filter(Boolean);
+}
+function shortDur(d){ // "00:18:45" -> "18:45"
+  d = String(d||''); return d.replace(/^00:(\d\d:\d\d)$/,'$1');
+}
+
+/* ===== load data ===== */
+async function init(){
+  if(API_URL){
+    try{
+      const r = await fetch(API_URL + '?action=all');
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||'API error');
+      DATA = j;
+    }catch(e){ console.warn(e); DATA = DEMO; isDemo = true; }
+  } else { DATA = DEMO; isDemo = true; }
+  if(!DATA.guides) DATA.guides = DEMO.guides;
+  if(!DATA.prompts) DATA.prompts = DEMO.prompts;
+  const st = DATA.settings||{};
+  if(st.SiteName){ $('#siteName').textContent = st.SiteName; document.title = st.SiteName; }
+  $('#foot').textContent = (st.SiteName||'PrepStop') + (st.Contact ? ' · ' + st.Contact : '');
+  setRole(role);
+}
+
+function setRole(r){
+  role = r; save('ep_role', r);
+  document.querySelectorAll('.role button').forEach(b=>b.classList.toggle('on', b.dataset.role===r));
+  document.querySelectorAll('#nav .t-only').forEach(a=>a.style.display = r==='teacher' ? '' : 'none');
+  route();
+}
+document.querySelectorAll('.role button').forEach(b=>b.onclick=()=>setRole(b.dataset.role));
+
+/* ===== views ===== */
+function demoNote(){
+  return isDemo ? `<div class="demo">Demo mode: not connected to the Google Sheet yet — showing sample data.</div>` : '';
+}
+function appCard(a){
+  return `<div class="card app">
+    <div class="ic">${esc(a.Icon||'📘')}</div>
+    <b>${esc(a.Name)}</b>
+    <div>${a.Subject?`<span class="chip">${esc(a.Subject)}</span>`:''}</div>
+    <p>${esc(a.Description)}</p>
+    <a class="btn" href="${esc(a.URL||'#')}" target="_blank" rel="noopener">Open app →</a>
+  </div>`;
+}
+function vidCard(v){
+  const id = ytId(v.YouTubeURL);
+  return `<a class="card vid" href="#video-${esc(v.Order)}">
+    <div class="thumb">
+      ${id?`<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">`:''}
+      <span class="play">▶</span>
+      ${v.Duration?`<span class="dur">${esc(shortDur(v.Duration))}</span>`:''}
+    </div>
+    <div class="meta">
+      <b>${esc(v.Title)}</b>
+      ${v.Subject?`<span class="chip">${esc(v.Subject)}</span>`:''}${v.Level?`<span class="chip alt">${esc(v.Level)}</span>`:''}
+    </div>
+  </a>`;
+}
+
+function viewHome(){
+  const st = DATA.settings||{};
+  const apps = DATA.apps.filter(visible).slice(0,3);
+  const vids = DATA.videos.filter(visible).slice(-3).reverse();
+  return demoNote() + `
+  <section class="hero">
+    <h1>${esc(st.SiteName||'PrepStop')}</h1>
+    <p>${esc(st.Tagline||'')}</p>
+  </section>
+  <div class="split">
+    <a class="door" href="#apps"><b>🎯 For Students</b><span>${esc(st.StudentIntro||'')}</span><div class="go">Go to Practice Apps →</div></a>
+    ${role==='teacher'
+      ? `<a class="door" href="#tools"><b>🧰 For Teachers</b><span>${esc(st.TeacherIntro||'')}</span><div class="go">Go to Teacher Tools →</div></a>`
+      : `<a class="door" href="#videos"><b>🎬 Video Library</b><span>Watch lessons by subject and chapter</span><div class="go">Go to Video Library →</div></a>`}
+  </div>
+  ${apps.length?`<h2>Practice Apps <a href="#apps">See all</a></h2><div class="grid">${apps.map(appCard).join('')}</div>`:''}
+  ${vids.length?`<h2>Latest Videos <a href="#videos">See all</a></h2><div class="grid">${vids.map(vidCard).join('')}</div>`:''}`;
+}
+
+function viewApps(){
+  const apps = DATA.apps.filter(visible);
+  return demoNote() + `<h2 style="margin-top:0">Practice Apps</h2>` +
+    (apps.length ? `<div class="grid">${apps.map(appCard).join('')}</div>` : `<div class="empty">No apps yet.</div>`);
+}
+
+function viewVideos(){
+  const all = DATA.videos.filter(visible);
+  const subjects = ['All', ...new Set(all.map(v=>v.Subject).filter(Boolean))];
+  return demoNote() + `<h2 style="margin-top:0">Video Library</h2>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Search titles, chapters or tags…" value="${esc(vQuery)}">
+    <div class="filters">${subjects.map(s=>`<button data-s="${esc(s)}" class="${s===vFilter?'on':''}">${esc(s)}</button>`).join('')}</div>
+  </div>
+  <div id="vlist"></div>`;
+}
+function renderVideoList(){
+  const q = vQuery.toLowerCase();
+  const list = DATA.videos.filter(visible).filter(v=>
+    (vFilter==='All' || v.Subject===vFilter) &&
+    (!q || [v.Title,v.Chapter,v.Tags,v.Subject,v.Timestamps].join(' ').toLowerCase().includes(q)));
+  // จัดกลุ่มตามบท
+  const groups = {};
+  list.forEach(v=>{ const k = v.Chapter||'Other'; (groups[k]=groups[k]||[]).push(v); });
+  $('#vlist').innerHTML = list.length
+    ? Object.keys(groups).map(k=>`<h2>${esc(k)}</h2><div class="grid">${groups[k].map(vidCard).join('')}</div>`).join('')
+    : `<div class="empty">No videos match your search.</div>`;
+}
+
+function viewVideo(order){
+  const v = DATA.videos.find(x=>String(x.Order)===String(order));
+  if(!v || !visible(v)) return `<a class="back" href="#videos">← Video Library</a><div class="empty">Video not found.</div>`;
+  const id = ytId(v.YouTubeURL);
+  const toc = parseToc(v.Timestamps);
+  const related = DATA.videos.filter(x=>visible(x) && x!==v && x.Chapter && x.Chapter===v.Chapter).slice(0,4);
+  return `<a class="back" href="#videos">← Video Library</a>
+  <div class="detail">
+    <div>
+      <div class="player" id="player">${id
+        ? `<iframe id="yt" src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`
+        : `<div>No video link yet<br><small>Add an Unlisted YouTube link in the YouTubeURL column</small></div>`}</div>
+      <h2 style="margin-top:16px">${esc(v.Title)}</h2>
+      <div>${v.Subject?`<span class="chip">${esc(v.Subject)}</span>`:''}${v.Chapter?`<span class="chip">${esc(v.Chapter)}</span>`:''}${v.Level?`<span class="chip alt">${esc(v.Level)}</span>`:''}${v.Duration?`<span class="chip alt">⏱ ${esc(shortDur(v.Duration))}</span>`:''}</div>
+    </div>
+    <aside>
+      ${toc.length?`<b>In this video</b><div class="toc" style="margin-top:8px">${toc.map(t=>`<button data-s="${t.s}"><span class="t">${esc(t.t)}</span><span>${esc(t.label)}</span></button>`).join('')}</div>`:''}
+      ${related.length?`<b style="display:block;margin-top:18px">More in this chapter</b><div class="grid" style="grid-template-columns:1fr;margin-top:8px">${related.map(vidCard).join('')}</div>`:''}
+    </aside>
+  </div>`;
+}
+function seek(sec){
+  const f = document.getElementById('yt');
+  if(!f) return;
+  const send = (func,args)=>f.contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*');
+  send('seekTo',[sec,true]); send('playVideo');
+  f.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function viewTools(){
+  return `<h2 style="margin-top:0">Teacher Tools</h2>
+  <div class="grid">${TOOLS.map(t=> t.ready
+    ? `<a class="card app tool-card" href="#tool-${t.id}"><div class="ic">${t.ic}</div><b>${t.name}</b><p>${t.desc}</p><span class="btn ghost sm" style="align-self:flex-start">Open →</span></a>`
+    : `<div class="card app soon"><div class="ic">${t.ic}</div><b>${t.name}</b><p>${t.desc}</p><span class="badge">Coming soon</span></div>`).join('')}</div>`;
+}
+
+/* ================= TEACHER TOOLS ================= */
+function loadJSON(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function saveJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function toast(msg){
+  let t=document.querySelector('.toast'); if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t);}
+  t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1800);
+}
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); toast('Copied ✓'); }
+  catch(e){ toast('Copy is blocked here — select and copy manually'); }
+}
+function downloadText(name, txt, type){
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['﻿'+txt],{type:type||'text/csv'}));
+    a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ toast('Download is blocked here'); }
+}
+function doPrint(){ try{ window.print(); }catch(e){ toast('Printing is blocked here'); } }
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const toolHead = t => `<a class="back" href="#tools">← Teacher Tools</a><h2 style="margin-top:0">${esc(t)}</h2>`;
+
+/* ---------- 1) Group Maker & Name Picker ---------- */
+const G = { names: load('ep_names')||'', mode: load('ep_gmode')||'groups', n: Number(load('ep_gn'))||4,
+            groups:null, used:[], noRepeat:true, last:'' };
+const gList = () => G.names.split(/\n|,/).map(s=>s.trim()).filter(Boolean);
+
+function viewGroups(){
+  return toolHead('Group Maker & Name Picker') + `
+  <div class="tool2">
+    <div class="panel">
+      <label class="lbl" for="g-names">Student names <small>(one per line)</small></label>
+      <textarea id="g-names" rows="14" placeholder="Anna&#10;Ben&#10;Chris">${esc(G.names)}</textarea>
+      <div class="muted" id="g-count"></div>
+    </div>
+    <div>
+      <div class="panel">
+        <b>Make groups</b>
+        <div class="row">
+          <select id="g-mode"><option value="groups">Number of groups</option><option value="size">Students per group</option></select>
+          <input id="g-n" type="number" min="1" value="${G.n}" style="width:80px">
+          <button class="btn" data-act="g-make">🔀 Shuffle</button>
+          <button class="btn ghost" data-act="g-copy">Copy</button>
+        </div>
+        <div id="g-out"></div>
+      </div>
+      <div class="panel">
+        <b>Name picker</b>
+        <div class="pick" id="g-pick">${esc(G.last||'?')}</div>
+        <div class="row">
+          <button class="btn" data-act="g-pick">🎯 Pick a name</button>
+          <label class="chk"><input type="checkbox" id="g-norep" ${G.noRepeat?'checked':''}> No repeats</label>
+          <button class="btn ghost" data-act="g-reset">Reset</button>
+        </div>
+        <div class="muted" id="g-left"></div>
+      </div>
+    </div>
+  </div>`;
+}
+function mountGroups(){ $('#g-mode').value=G.mode; gRender(); }
+function gRender(){
+  const n=gList().length, left=n-G.used.filter(x=>gList().includes(x)).length;
+  $('#g-count').textContent = n+' students';
+  $('#g-left').textContent = G.noRepeat ? `${left} of ${n} not picked yet` : '';
+  $('#g-out').innerHTML = G.groups ? `<div class="groups">${G.groups.map((g,i)=>`<div class="group"><b>Group ${i+1}</b>${g.map(x=>`<div>${esc(x)}</div>`).join('')}</div>`).join('')}</div>` : '<div class="muted">Enter names, then press Shuffle.</div>';
+}
+function gMake(){
+  const list=shuffle(gList()); if(!list.length){toast('Add some names first');return;}
+  const n=Math.max(1,G.n);
+  const k = G.mode==='groups' ? Math.min(n,list.length) : Math.ceil(list.length/n);
+  G.groups=Array.from({length:k},()=>[]); list.forEach((x,i)=>G.groups[i%k].push(x)); gRender();
+}
+function gPick(){
+  const all=gList(); if(!all.length){toast('Add some names first');return;}
+  let pool = G.noRepeat ? all.filter(x=>!G.used.includes(x)) : all;
+  if(!pool.length){ toast('Everyone has been picked — starting again'); G.used=[]; pool=all; }
+  const choice=pool[Math.floor(Math.random()*pool.length)];
+  const el=$('#g-pick'); el.classList.add('spin'); let ticks=0;
+  const iv=setInterval(()=>{ el.textContent=all[Math.floor(Math.random()*all.length)]; if(++ticks>12){
+    clearInterval(iv); el.classList.remove('spin'); el.textContent=choice; G.last=choice; if(G.noRepeat) G.used.push(choice); gRender(); }},60);
+}
+
+/* ---------- 2) Teleprompter ---------- */
+const T = { text: load('ep_script')||'Paste or type your script here.\n\nPress Start, then use Space to pause and the arrow keys to change speed.',
+            speed: Number(load('ep_tspeed'))||40, size: Number(load('ep_tsize'))||48, mirror:false, playing:false, raf:0, lastT:0 };
+function viewPrompter(){
+  return toolHead('Teleprompter') + `
+  <div class="panel">
+    <label class="lbl" for="t-text">Script</label>
+    <textarea id="t-text" rows="12">${esc(T.text)}</textarea>
+    <div class="row">
+      <label class="chk">Speed <input type="range" id="t-speed" min="10" max="200" value="${T.speed}"></label>
+      <label class="chk">Text size <input type="range" id="t-size" min="24" max="110" value="${T.size}"></label>
+      <label class="chk"><input type="checkbox" id="t-mirror" ${T.mirror?'checked':''}> Mirror (for glass prompters)</label>
+    </div>
+    <div class="row"><button class="btn" data-act="t-start">▶ Start prompter</button><span class="muted" id="t-est"></span></div>
+  </div>`;
+}
+function mountPrompter(){ tEst(); }
+function tEst(){
+  const words=T.text.trim().split(/\s+/).filter(Boolean).length;
+  const el=$('#t-est'); if(el) el.textContent = `${words} words · about ${Math.max(1,Math.round(words/130))} min spoken`;
+}
+function tOpen(){
+  const ov=document.createElement('div'); ov.className='prompter'; ov.id='prompter';
+  ov.innerHTML=`<div class="pr-scroll" id="pr-scroll"><div class="pr-text ${T.mirror?'mirror':''}" id="pr-text" style="font-size:${T.size}px">${esc(T.text)}</div></div>
+  <div class="pr-guide"></div>
+  <div class="pr-bar">
+    <button data-act="pr-play" id="pr-play">❚❚ Pause</button>
+    <button data-act="pr-slow">− Slower</button><span id="pr-info"></span><button data-act="pr-fast">+ Faster</button>
+    <button data-act="pr-small">A−</button><button data-act="pr-big">A+</button>
+    <button data-act="pr-top">⟲ Restart</button><button data-act="pr-exit">✕ Exit</button>
+  </div>`;
+  document.body.appendChild(ov);
+  try{ ov.requestFullscreen && ov.requestFullscreen().catch(()=>{}); }catch(e){}
+  T.playing=true; T.lastT=0; tInfo(); T.raf=requestAnimationFrame(tTick);
+}
+function tTick(ts){
+  const sc=document.getElementById('pr-scroll'); if(!sc) return;
+  if(T.playing){ if(T.lastT) sc.scrollTop += T.speed*(ts-T.lastT)/1000; T.lastT=ts; } else T.lastT=0;
+  T.raf=requestAnimationFrame(tTick);
+}
+function tInfo(){
+  const i=document.getElementById('pr-info'); if(i) i.textContent='Speed '+T.speed;
+  const p=document.getElementById('pr-play'); if(p) p.textContent = T.playing?'❚❚ Pause':'▶ Play';
+}
+function tClose(){
+  cancelAnimationFrame(T.raf); T.playing=false;
+  try{ document.fullscreenElement && document.exitFullscreen(); }catch(e){}
+  const ov=document.getElementById('prompter'); if(ov) ov.remove();
+}
+function tSet(k,v){ T[k]=v; save(k==='speed'?'ep_tspeed':'ep_tsize', v); const t=document.getElementById('pr-text'); if(t) t.style.fontSize=T.size+'px'; tInfo(); }
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('prompter')) return;
+  if(e.key===' '){ e.preventDefault(); T.playing=!T.playing; tInfo(); }
+  else if(e.key==='ArrowUp'||e.key==='ArrowRight') tSet('speed',Math.min(300,T.speed+10));
+  else if(e.key==='ArrowDown'||e.key==='ArrowLeft') tSet('speed',Math.max(5,T.speed-10));
+  else if(e.key==='Escape') tClose();
+});
+
+/* ---------- 3) Rubric Builder ---------- */
+const RB_TEMPLATES = {
+  blank:{title:'New Rubric',levels:[{name:'Excellent',pts:4},{name:'Good',pts:3},{name:'Fair',pts:2},{name:'Needs work',pts:1}],
+    criteria:[{name:'Criterion 1',w:1,cells:['','','','']}]},
+  math:{title:'Math Problem Solving',levels:[{name:'Excellent',pts:4},{name:'Good',pts:3},{name:'Fair',pts:2},{name:'Needs work',pts:1}],
+    criteria:[
+      {name:'Understanding',w:1,cells:['Identifies all key information and what is asked','Identifies most key information','Identifies some information; partly misreads the task','Misunderstands the problem']},
+      {name:'Strategy',w:1,cells:['Efficient, well-chosen method','Workable method with minor gaps','Method partly appropriate','No clear method']},
+      {name:'Accuracy',w:2,cells:['Correct answer with correct units','Minor calculation slip','Several errors','Mostly incorrect']},
+      {name:'Communication',w:1,cells:['Clear, logical working that others can follow','Working mostly clear','Working hard to follow','Little or no working shown']}]},
+  present:{title:'Oral Presentation',levels:[{name:'Excellent',pts:4},{name:'Good',pts:3},{name:'Fair',pts:2},{name:'Needs work',pts:1}],
+    criteria:[
+      {name:'Content',w:2,cells:['Accurate, thorough and well researched','Accurate with minor gaps','Some inaccuracies or gaps','Inaccurate or very thin']},
+      {name:'Organisation',w:1,cells:['Clear structure, smooth transitions','Clear structure','Structure hard to follow','No clear structure']},
+      {name:'Delivery',w:1,cells:['Confident, clear voice, good eye contact','Mostly clear and confident','Reads from notes often','Hard to hear or follow']},
+      {name:'Visuals',w:1,cells:['Visuals strongly support the message','Visuals helpful','Visuals distracting or cluttered','No useful visuals']}]}
+};
+let RB = loadJSON('ep_rubric') || JSON.parse(JSON.stringify(RB_TEMPLATES.math));
+const rbSave = () => saveJSON('ep_rubric', RB);
+const rbMax = () => { const top=Math.max(0,...RB.levels.map(l=>Number(l.pts)||0)); return RB.criteria.reduce((s,c)=>s+(Number(c.w)||0)*top,0); };
+
+function viewRubric(){
+  return toolHead('Rubric Builder') + `
+  <div class="panel">
+    <div class="row">
+      <input type="text" data-rb="title" value="${esc(RB.title)}" style="flex:1;min-width:200px;font-weight:600;font-size:17px">
+      <select id="rb-tpl"><option value="">Start from template…</option><option value="blank">Blank</option><option value="math">Math problem solving</option><option value="present">Oral presentation</option></select>
+    </div>
+    <div class="tblwrap"><table class="tbl rb" id="rb-tbl"></table></div>
+    <div class="row">
+      <button class="btn ghost sm" data-act="rb-addc">+ Criterion</button>
+      <button class="btn ghost sm" data-act="rb-addl">+ Level</button>
+      <span class="muted" style="margin-left:auto" id="rb-max"></span>
+    </div>
+    <div class="row">
+      <button class="btn" data-act="rb-print">🖨 Print</button>
+      <button class="btn ghost" data-act="rb-copy">Copy table</button>
+      <span class="muted">Copy pastes straight into Google Sheets or Docs.</span>
+    </div>
+  </div>
+  <div class="print-only" id="rb-print"></div>`;
+}
+function mountRubric(){ rbTable(); }
+function rbTable(){
+  const L=RB.levels;
+  $('#rb-tbl').innerHTML = `<thead><tr><th>Criterion</th><th class="num">Weight</th>${L.map((l,i)=>`<th><input type="text" data-rb="lvname:${i}" value="${esc(l.name)}" style="width:100%"><div class="row" style="margin:2px 0"><input type="number" data-rb="lvpts:${i}" value="${esc(l.pts)}" style="width:60px"> pts ${L.length>1?`<button class="x" data-act="rb-dell" data-i="${i}" title="Remove level">×</button>`:''}</div></th>`).join('')}</tr></thead>
+  <tbody>${RB.criteria.map((c,j)=>`<tr>
+    <td><input type="text" data-rb="crname:${j}" value="${esc(c.name)}" style="width:130px">${RB.criteria.length>1?`<button class="x" data-act="rb-delc" data-j="${j}" title="Remove criterion">×</button>`:''}</td>
+    <td class="num"><input type="number" min="0" step="0.5" data-rb="crw:${j}" value="${esc(c.w)}" style="width:56px"></td>
+    ${L.map((l,i)=>`<td><textarea data-rb="cell:${j}:${i}">${esc(c.cells[i]||'')}</textarea></td>`).join('')}
+  </tr>`).join('')}</tbody>`;
+  rbMaxText();
+}
+function rbMaxText(){ const m=$('#rb-max'); if(m) m.textContent='Maximum score: '+rbMax(); }
+function rbInput(key,val){
+  const [k,a,b]=key.split(':');
+  if(k==='title') RB.title=val;
+  else if(k==='lvname') RB.levels[a].name=val;
+  else if(k==='lvpts') RB.levels[a].pts=Number(val);
+  else if(k==='crname') RB.criteria[a].name=val;
+  else if(k==='crw') RB.criteria[a].w=Number(val);
+  else if(k==='cell') RB.criteria[a].cells[b]=val;
+  rbSave(); rbMaxText();
+}
+function rbTSV(){
+  const L=RB.levels, clean=s=>String(s||'').replace(/[\t\n]+/g,' ');
+  return [RB.title, ['Criterion','Weight',...L.map(l=>`${clean(l.name)} (${l.pts})`)].join('\t'),
+    ...RB.criteria.map(c=>[clean(c.name),c.w,...L.map((l,i)=>clean(c.cells[i]))].join('\t')),
+    `Maximum score\t${rbMax()}`].join('\n');
+}
+function rbPrintHTML(){
+  const L=RB.levels;
+  $('#rb-print').innerHTML = `<h2>${esc(RB.title)}</h2><table class="tbl"><thead><tr><th>Criterion</th>${L.map(l=>`<th>${esc(l.name)} (${esc(l.pts)})</th>`).join('')}<th>Score</th></tr></thead>
+  <tbody>${RB.criteria.map(c=>`<tr><td><b>${esc(c.name)}</b>${Number(c.w)!==1?`<br><small>× ${esc(c.w)}</small>`:''}</td>${L.map((l,i)=>`<td>${esc(c.cells[i]||'')}</td>`).join('')}<td style="width:70px"></td></tr>`).join('')}
+  <tr><td colspan="${L.length+1}" style="text-align:right"><b>Total</b></td><td>/ ${rbMax()}</td></tr></tbody></table>
+  <p style="margin-top:14px">Name: ______________________ &nbsp; Class: ________ &nbsp; Date: ________</p>`;
+}
+
+/* ---------- 4) Item Analysis ---------- */
+const IA = { raw: load('ep_iaraw')||'', res:null, err:'' };
+function viewItems(){
+  return toolHead('Item Analysis') + `
+  <div class="panel">
+    <label class="lbl" for="ia-raw">Paste scores <small>— straight from Google Sheets / Excel, or upload a CSV</small></label>
+    <textarea id="ia-raw" rows="8" placeholder="Name, Q1, Q2, Q3 …&#10;KEY, B, D, A …   ← optional answer-key row&#10;Anna, B, C, A …&#10;Ben, 1, 0, 1 …   ← or use 1 = correct, 0 = wrong">${esc(IA.raw)}</textarea>
+    <div class="row">
+      <button class="btn" data-act="ia-run">📊 Analyse</button>
+      <label class="btn ghost" style="cursor:pointer">📂 Upload CSV<input type="file" id="ia-file" accept=".csv,.tsv,.txt" hidden></label>
+      <button class="btn ghost" data-act="ia-sample">Load sample</button>
+      <button class="btn ghost" data-act="ia-tpl">Download template</button>
+    </div>
+    <div class="muted">First row: headers (Name, then one column per question). Add a row whose first cell is <b>KEY</b> to score letter answers and see distractor analysis.</div>
+  </div>
+  <div id="ia-out"></div>`;
+}
+function mountItems(){ if(IA.raw.trim()) iaRun(true); }
+
+function parseTable(text){
+  text=text.replace(/\r/g,'');
+  const first=text.split('\n')[0]||'';
+  const d = first.includes('\t') ? '\t' : ((first.match(/;/g)||[]).length > (first.match(/,/g)||[]).length ? ';' : ',');
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; }
+    else if(ch==='"') q=true;
+    else if(ch===d){ row.push(cell.trim()); cell=''; }
+    else if(ch==='\n'){ row.push(cell.trim()); rows.push(row); row=[]; cell=''; }
+    else cell+=ch;
+  }
+  row.push(cell.trim()); rows.push(row);
+  return rows.filter(r=>r.some(c=>c!==''));
+}
+function iaAnalyse(text){
+  const rows=parseTable(text);
+  if(rows.length<3) throw new Error('Need a header row and at least 2 students.');
+  const head=rows[0], items=head.slice(1).map((h,i)=>h||('Q'+(i+1)));
+  const keyRow=rows.find((r,i)=>i>0 && /^(key|answer ?key|เฉลย)$/i.test(r[0]));
+  const key = keyRow ? keyRow.slice(1).map(s=>s.toUpperCase()) : null;
+  const studs=rows.slice(1).filter(r=>r!==keyRow && r[0]!=='');
+  if(studs.length<2) throw new Error('Need at least 2 students.');
+  const k=items.length, n=studs.length;
+  const S=studs.map(r=>{
+    const resp=items.map((_,i)=>String(r[i+1]??'').toUpperCase());
+    const sc=resp.map((v,i)=> key ? (v!=='' && v===key[i] ? 1:0) : (Number(v)>0 ? 1:0));
+    return {name:r[0], resp, sc, total:sc.reduce((a,b)=>a+b,0)};
+  });
+  const totals=S.map(s=>s.total), mean=totals.reduce((a,b)=>a+b,0)/n;
+  const vr=totals.reduce((a,t)=>a+(t-mean)**2,0)/n, sd=Math.sqrt(vr);
+  const sorted=S.slice().sort((a,b)=>b.total-a.total), g=Math.max(1,Math.round(n*0.27));
+  const up=sorted.slice(0,g), lo=sorted.slice(-g);
+  let spq=0;
+  const it=items.map((name,i)=>{
+    const p=S.reduce((a,s)=>a+s.sc[i],0)/n; spq+=p*(1-p);
+    const pu=up.reduce((a,s)=>a+s.sc[i],0)/g, pl=lo.reduce((a,s)=>a+s.sc[i],0)/g;
+    let opts=null;
+    if(key){ opts={}; S.forEach(s=>{const v=s.resp[i]||'—'; opts[v]=(opts[v]||0)+1;}); }
+    return {name,p,D:pu-pl,key:key?key[i]:'',opts};
+  });
+  const kr20 = (k>1 && vr>0) ? (k/(k-1))*(1-spq/vr) : null;
+  return {k,n,mean,sd,kr20,items:it,students:sorted,hasKey:!!key};
+}
+const pTag=p=> p>0.8?'<span class="tag t-warn">Easy</span>':p<0.2?'<span class="tag t-bad">Very hard</span>':p<0.3?'<span class="tag t-warn">Hard</span>':'<span class="tag t-good">OK</span>';
+const dTag=d=> d<0?'<span class="tag t-bad">Negative — check key</span>':d<0.2?'<span class="tag t-bad">Revise</span>':d<0.3?'<span class="tag t-warn">Fair</span>':d<0.4?'<span class="tag t-ok">Good</span>':'<span class="tag t-good">Very good</span>';
+const f2=x=>x==null?'—':x.toFixed(2);
+
+function iaRun(quiet){
+  IA.raw=$('#ia-raw')?$('#ia-raw').value:IA.raw; save('ep_iaraw',IA.raw);
+  const out=$('#ia-out');
+  try{ IA.res=iaAnalyse(IA.raw); }
+  catch(e){ IA.res=null; if(!quiet) out.innerHTML=`<div class="panel" style="color:#a2351f">${esc(e.message)}</div>`; return; }
+  const R=IA.res, flagged=R.items.filter(x=>x.D<0.2||x.p<0.2||x.p>0.9).length;
+  out.innerHTML = `
+  <div class="stats">
+    <div class="stat"><span>Students</span><b>${R.n}</b></div>
+    <div class="stat"><span>Questions</span><b>${R.k}</b></div>
+    <div class="stat"><span>Mean score</span><b>${R.mean.toFixed(1)}</b> <span>${(R.mean/R.k*100).toFixed(0)}%</span></div>
+    <div class="stat"><span>SD</span><b>${R.sd.toFixed(2)}</b></div>
+    <div class="stat"><span>Reliability (KR-20)</span><b>${f2(R.kr20)}</b></div>
+    <div class="stat"><span>Questions to review</span><b>${flagged}</b></div>
+  </div>
+  ${R.n<15?`<div class="demo">With fewer than 15 students these numbers are rough — use them as hints, not verdicts.</div>`:''}
+  <div class="panel">
+    <b>Questions</b>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>Item</th>${R.hasKey?'<th>Key</th>':''}<th class="num">Difficulty p</th><th></th><th class="num">Discrimination D</th><th></th>${R.hasKey?'<th>Answers chosen</th>':''}</tr></thead>
+    <tbody>${R.items.map(x=>`<tr><td><b>${esc(x.name)}</b></td>${R.hasKey?`<td>${esc(x.key)}</td>`:''}
+      <td class="num">${f2(x.p)}</td><td>${pTag(x.p)}</td><td class="num">${f2(x.D)}</td><td>${dTag(x.D)}</td>
+      ${R.hasKey?`<td>${Object.keys(x.opts).sort().map(o=>o===x.key?`<b>${esc(o)} ${x.opts[o]}✓</b>`:`${esc(o)} ${x.opts[o]}`).join(' · ')}</td>`:''}</tr>`).join('')}</tbody></table></div>
+    <div class="muted" style="margin-top:8px">p = share of students who got it right. D = top 27% minus bottom 27% (≥ 0.30 is good; below 0.20 needs revising; negative usually means a wrong key or a confusing question).${R.hasKey?' In the answers column, a wrong option nobody picks is not working as a distractor.':''}</div>
+    <div class="row"><button class="btn ghost sm" data-act="ia-copy">Copy results</button><button class="btn ghost sm" data-act="ia-dl">Download CSV</button></div>
+  </div>
+  <div class="panel">
+    <b>Students (ranked)</b>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th class="num">#</th><th>Name</th><th class="num">Score</th><th class="num">%</th></tr></thead>
+    <tbody>${R.students.map((s,i)=>`<tr><td class="num">${i+1}</td><td>${esc(s.name)}</td><td class="num">${s.total} / ${R.k}</td><td class="num">${(s.total/R.k*100).toFixed(0)}</td></tr>`).join('')}</tbody></table></div>
+  </div>`;
+}
+function iaCSV(){
+  const R=IA.res; if(!R) return '';
+  return [['Item','Key','Difficulty p','Discrimination D'].join(','), ...R.items.map(x=>[x.name,x.key,f2(x.p),f2(x.D)].join(',')),
+    '', ['Rank','Name','Score','Percent'].join(','), ...R.students.map((s,i)=>[i+1,'"'+s.name.replace(/"/g,'""')+'"',s.total,(s.total/R.k*100).toFixed(0)].join(','))].join('\n');
+}
+function iaSample(){
+  const names=['Anna','Ben','Chloe','Daniel','Emma','Finn','Grace','Henry','Isla','Jack','Kim','Leo','Mia','Nina','Oscar','Pim','Quinn','Ryan','Sara','Tom'];
+  const key=['B','D','A','C','B','A','D','C','A','B'];
+  let seed=7; const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const diff=[.9,.7,.6,.5,.55,.35,.3,.65,.15,.5];
+  const lines=['Name,'+key.map((_,i)=>'Q'+(i+1)).join(','),'KEY,'+key.join(',')];
+  names.forEach((nm,si)=>{
+    const ability=1-si/names.length;
+    lines.push(nm+','+key.map((k,i)=>{
+      const right = i===9 ? rnd()<0.5 : rnd() < diff[i]*0.6 + ability*0.5;
+      if(right) return k;
+      const others=['A','B','C','D'].filter(o=>o!==k && !(i===3 && o==='A'));
+      return others[Math.floor(rnd()*others.length)];
+    }).join(','));
+  });
+  $('#ia-raw').value=lines.join('\n'); iaRun();
+}
+
+/* ---------- registry ---------- */
+const TOOL_VIEWS = {
+  groups:{view:viewGroups, mount:mountGroups},
+  prompter:{view:viewPrompter, mount:mountPrompter},
+  rubric:{view:viewRubric, mount:mountRubric},
+  items:{view:viewItems, mount:mountItems}
+};
+
+/* ---------- tool events ---------- */
+document.addEventListener('input', e=>{
+  const id=e.target.id;
+  if(id==='g-names'){ G.names=e.target.value; save('ep_names',G.names); gRender(); }
+  else if(id==='g-n'){ G.n=Number(e.target.value)||1; save('ep_gn',G.n); }
+  else if(id==='t-text'){ T.text=e.target.value; save('ep_script',T.text); tEst(); }
+  else if(id==='t-speed'){ tSet('speed',Number(e.target.value)); }
+  else if(id==='t-size'){ tSet('size',Number(e.target.value)); }
+  else if(e.target.dataset && e.target.dataset.rb){ rbInput(e.target.dataset.rb, e.target.value); }
+});
+document.addEventListener('change', e=>{
+  const id=e.target.id;
+  if(id==='g-mode'){ G.mode=e.target.value; save('ep_gmode',G.mode); }
+  else if(id==='g-norep'){ G.noRepeat=e.target.checked; gRender(); }
+  else if(id==='t-mirror'){ T.mirror=e.target.checked; }
+  else if(id==='rb-tpl' && e.target.value){ RB=JSON.parse(JSON.stringify(RB_TEMPLATES[e.target.value])); rbSave(); route(); }
+  else if(id==='ia-file' && e.target.files[0]){
+    const r=new FileReader(); r.onload=()=>{ $('#ia-raw').value=r.result; iaRun(); }; r.readAsText(e.target.files[0]);
+  }
+});
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act;
+  const acts={
+    'g-make':gMake, 'g-pick':gPick,
+    'g-reset':()=>{G.used=[];G.last='';$('#g-pick').textContent='?';gRender();},
+    'g-copy':()=>G.groups?copyText(G.groups.map((g,i)=>`Group ${i+1}: ${g.join(', ')}`).join('\n')):toast('Shuffle first'),
+    't-start':tOpen, 'pr-exit':tClose,
+    'pr-play':()=>{T.playing=!T.playing;tInfo();},
+    'pr-slow':()=>tSet('speed',Math.max(5,T.speed-10)), 'pr-fast':()=>tSet('speed',Math.min(300,T.speed+10)),
+    'pr-small':()=>tSet('size',Math.max(20,T.size-6)), 'pr-big':()=>tSet('size',Math.min(140,T.size+6)),
+    'pr-top':()=>{const s=document.getElementById('pr-scroll'); if(s) s.scrollTop=0;},
+    'rb-addc':()=>{RB.criteria.push({name:'New criterion',w:1,cells:RB.levels.map(()=>'')});rbSave();rbTable();},
+    'rb-addl':()=>{RB.levels.push({name:'Level',pts:0});RB.criteria.forEach(c=>c.cells.push(''));rbSave();rbTable();},
+    'rb-delc':()=>{RB.criteria.splice(Number(b.dataset.j),1);rbSave();rbTable();},
+    'rb-dell':()=>{const i=Number(b.dataset.i);RB.levels.splice(i,1);RB.criteria.forEach(c=>c.cells.splice(i,1));rbSave();rbTable();},
+    'rb-print':()=>{rbPrintHTML();doPrint();},
+    'rb-copy':()=>copyText(rbTSV()),
+    'ia-run':()=>iaRun(), 'ia-sample':iaSample,
+    'ia-copy':()=>IA.res?copyText(iaCSV().replace(/,/g,'\t')):toast('Analyse first'),
+    'ia-dl':()=>IA.res?downloadText('item-analysis.csv',iaCSV()):toast('Analyse first'),
+    'ia-tpl':()=>downloadText('scores-template.csv','Name,Q1,Q2,Q3,Q4,Q5\nKEY,A,B,C,D,A\nStudent 1,A,B,C,A,A\nStudent 2,B,B,C,D,C\n')
+  };
+  if(acts[a]){ e.preventDefault(); acts[a](); }
+});
+
+
+/* ---------- 5) Screencast ---------- */
+const SC = { rec:null, chunks:[], url:'', streams:[], camVideo:null, t0:0, acc:0, tick:0, ac:null,
+             opts:{cam: load('ep_sccam')!=='0', mic: load('ep_scmic')!=='0'} };
+const scSupported = () => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
+function viewScreencast(){
+  if(!scSupported()) return toolHead('Screencast') + `<div class="panel">
+    <b>This browser can't record the screen</b>
+    <p class="muted">Use Chrome, Edge or Firefox on a computer. On iPad or iPhone, use the built-in <b>Screen Recording</b> in Control Center instead.</p></div>`;
+  return toolHead('Screencast') + `
+  <div class="tool2">
+    <div class="panel">
+      <b>Set up</b>
+      <label class="chk"><input type="checkbox" id="sc-cam" ${SC.opts.cam?'checked':''}> Camera bubble</label>
+      <label class="chk"><input type="checkbox" id="sc-mic" ${SC.opts.mic?'checked':''}> Microphone</label>
+      <p class="muted">When you press Start, choose what to share: your whole screen, a window, or a browser tab with your slides.
+      The camera opens in a small floating window — drag it where you want and it is recorded with the screen.</p>
+      <p class="muted">Tip: open the <a href="#tool-prompter">Teleprompter</a> in another window to read your script while recording.</p>
+    </div>
+    <div class="panel">
+      <b>Recording</b>
+      <div class="pick" id="sc-time" style="font-variant-numeric:tabular-nums">00:00</div>
+      <div class="row" id="sc-ctrl"></div>
+      <div id="sc-cam-wrap"></div>
+      <div id="sc-result"></div>
+    </div>
+  </div>`;
+}
+function mountScreencast(){ if(scSupported()) scUI(); }
+function scState(){ return !SC.rec ? 'idle' : SC.rec.state; }
+function scUI(){
+  const s=scState(), c=$('#sc-ctrl'); if(!c) return;
+  c.innerHTML = s==='idle' ? `<button class="btn" data-act="sc-start">⏺ Start recording</button>`
+    : `${s==='recording'?`<button class="btn ghost" data-act="sc-pause">❚❚ Pause</button>`:`<button class="btn ghost" data-act="sc-resume">▶ Resume</button>`}
+       <button class="btn warn" data-act="sc-stop">⏹ Stop</button>
+       ${SC.camVideo && document.pictureInPictureEnabled ? `<button class="btn ghost" data-act="sc-pip">Pop out camera</button>`:''}`;
+}
+function scTime(){
+  const ms = SC.acc + (scState()==='recording' ? Date.now()-SC.t0 : 0), s=Math.floor(ms/1000);
+  const el=$('#sc-time'); if(el) el.textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+async function scStart(){
+  let screen;
+  try{ screen = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30}, audio:true}); }
+  catch(e){ toast(e.name==='NotAllowedError' ? 'Screen sharing was cancelled or is blocked here' : 'Could not start screen capture'); return; }
+  SC.streams=[screen];
+  let mic=null, cam=null;
+  if(SC.opts.mic){ try{ mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); SC.streams.push(mic);}catch(e){ toast('Microphone not available — recording without it'); } }
+  if(SC.opts.cam){ try{ cam=await navigator.mediaDevices.getUserMedia({video:{width:480,height:480},audio:false}); SC.streams.push(cam);}catch(e){ toast('Camera not available'); } }
+  // mix audio (mic + screen/tab audio)
+  const tracks=[...screen.getVideoTracks()];
+  const audioSrc=[screen,mic].filter(s=>s && s.getAudioTracks().length);
+  if(audioSrc.length){
+    SC.ac=new AudioContext(); const dest=SC.ac.createMediaStreamDestination();
+    audioSrc.forEach(s=>SC.ac.createMediaStreamSource(s).connect(dest));
+    tracks.push(...dest.stream.getAudioTracks());
+  }
+  // camera bubble → picture-in-picture (floats over the screen, so it is captured)
+  $('#sc-cam-wrap').innerHTML='';
+  if(cam){
+    const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.srcObject=cam;
+    v.style.cssText='width:160px;height:160px;object-fit:cover;border-radius:50%;margin-top:8px';
+    $('#sc-cam-wrap').appendChild(v); await v.play().catch(()=>{}); SC.camVideo=v;
+    try{ if(document.pictureInPictureEnabled) await v.requestPictureInPicture(); }catch(e){ /* user can press Pop out camera */ }
+  }
+  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+  const rec=new MediaRecorder(new MediaStream(tracks), mime?{mimeType:mime, videoBitsPerSecond:4e6}:undefined);
+  SC.chunks=[]; rec.ondataavailable=e=>e.data.size&&SC.chunks.push(e.data); rec.onstop=scFinish;
+  screen.getVideoTracks()[0].addEventListener('ended',()=>scState()!=='idle'&&scState()!=='inactive'&&SC.rec.stop());
+  // 3-second countdown
+  for(let i=3;i>0;i--){ $('#sc-time').textContent=String(i); await new Promise(r=>setTimeout(r,800)); }
+  SC.rec=rec; SC.acc=0; SC.t0=Date.now(); rec.start(1000);
+  SC.tick=setInterval(scTime,500); scTime(); scUI(); $('#sc-result').innerHTML='';
+}
+function scFinish(){
+  clearInterval(SC.tick);
+  SC.streams.forEach(s=>s.getTracks().forEach(t=>t.stop())); SC.streams=[];
+  try{ document.pictureInPictureElement && document.exitPictureInPicture(); }catch(e){}
+  try{ SC.ac && SC.ac.close(); }catch(e){} SC.ac=null; SC.camVideo=null;
+  const type=(SC.rec&&SC.rec.mimeType)||'video/webm', ext=type.includes('mp4')?'mp4':'webm';
+  if(SC.url) URL.revokeObjectURL(SC.url);
+  SC.url=URL.createObjectURL(new Blob(SC.chunks,{type})); SC.rec=null;
+  const d=new Date(), stamp=d.toISOString().slice(0,16).replace(/[-:T]/g,'');
+  const wrap=$('#sc-cam-wrap'); if(wrap) wrap.innerHTML='';
+  const res=$('#sc-result'); if(!res) return;
+  res.innerHTML=`<video controls src="${SC.url}" style="width:100%;border-radius:12px;margin-top:10px;background:#000"></video>
+    <div class="row"><a class="btn" href="${SC.url}" download="prepstop-${stamp}.${ext}">⬇ Download video</a>
+    <span class="muted">.${ext} uploads straight to YouTube.</span></div>`;
+  scUI();
+}
+
+/* ---------- 6) Worksheet Builder ---------- */
+const WS_SAMPLE = `1. Solve for $x$: $2x + 5 = 17$
+A) 5
+B) 6*
+C) 7
+D) 11
+
+2. What is the slope of the line through $(1, 2)$ and $(3, 8)$?
+A) 2
+B) 3*
+C) 4
+D) 6
+
+3. A shirt costs 400 baht and is 25% off. What is the sale price?
+A) 100 baht
+B) 300 baht*
+C) 325 baht
+D) 375 baht
+
+4. Explain why $(a+b)^2 \\neq a^2 + b^2$. Give an example.
+[lines:4]`;
+let WS = loadJSON('ep_ws') || {title:'Linear Equations — Practice', instr:'Answer all questions. Show your working.', src:WS_SAMPLE, cols:'1', shuffleQ:false, shuffleC:false, key:true, version:'A'};
+const wsSave = () => saveJSON('ep_ws', WS);
+
+function parseWS(src){
+  return String(src||'').replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(block=>{
+    const lines=block.split('\n'); const q={text:'', choices:[], lines:0};
+    lines.forEach((ln,i)=>{
+      const c=ln.match(/^\s*([A-Ha-h])[\).:]\s*(.*)$/), L=ln.match(/^\s*\[(?:lines|space):\s*(\d+)\]\s*$/i);
+      if(L) q.lines=Number(L[1]);
+      else if(c && i>0){ let t=c[2].trim(), ok=/\*\s*$/.test(t); if(ok) t=t.replace(/\*\s*$/,'').trim(); q.choices.push({t,ok}); }
+      else q.text += (q.text?'\n':'') + (i===0 ? ln.replace(/^\s*(?:Q\s*)?\d+\s*[\.\):]\s*/i,'') : ln);
+    });
+    if(!q.choices.length && !q.lines) q.lines=3;
+    return q;
+  });
+}
+function seeded(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return ()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return ((h^=h>>>16)>>>0)/4294967296;}; }
+function sShuffle(a,r){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function wsBuild(){
+  let qs=parseWS(WS.src); const r=seeded('v'+WS.version);
+  if(WS.shuffleQ) qs=sShuffle(qs,r);
+  if(WS.shuffleC) qs=qs.map(q=>({...q, choices:sShuffle(q.choices,r)}));
+  return qs;
+}
+const LET='ABCDEFGH';
+function wsPaperHTML(){
+  const qs=wsBuild(), multi=WS.shuffleQ||WS.shuffleC;
+  const body=qs.map((q,i)=>`<div class="wq"><div class="wq-t"><b>${i+1}.</b> ${esc(q.text).replace(/\n/g,'<br>')}</div>
+    ${q.choices.length?`<div class="wq-c">${q.choices.map((c,j)=>`<div>(${LET[j]}) ${esc(c.t)}</div>`).join('')}</div>`:''}
+    ${q.lines?`<div class="wq-l">${'<div></div>'.repeat(q.lines)}</div>`:''}</div>`).join('');
+  const key=qs.map((q,i)=>{ const j=q.choices.findIndex(c=>c.ok); return j>=0?`<span><b>${i+1}.</b> ${LET[j]}</span>`:`<span><b>${i+1}.</b> —</span>`; }).join('');
+  return `<div class="paper">
+    <div class="ph"><div><h1>${esc(WS.title)}</h1>${multi?`<span class="chip">Version ${esc(WS.version)}</span>`:''}</div>
+    <div class="ph-r">Name ______________________<br>Class ________ Date ________</div></div>
+    ${WS.instr?`<p class="pi">${esc(WS.instr)}</p>`:''}
+    <div class="wqs" style="columns:${WS.cols}">${body}</div>
+  </div>
+  ${WS.key && qs.some(q=>q.choices.length)?`<div class="paper keypage"><h1>${esc(WS.title)} — Answer Key${multi?' (Version '+esc(WS.version)+')':''}</h1><div class="keys">${key}</div></div>`:''}`;
+}
+function viewWorksheet(){
+  return toolHead('Worksheet Builder') + `
+  <div class="tool2" style="grid-template-columns:minmax(0,1fr)">
+    <div class="panel">
+      <div class="row"><input type="text" id="ws-title" value="${esc(WS.title)}" style="flex:1;min-width:200px;font-weight:600"></div>
+      <div class="row"><input type="text" id="ws-instr" value="${esc(WS.instr)}" placeholder="Instructions" style="flex:1"></div>
+      <label class="lbl" for="ws-src">Questions <small>— blank line between questions · A) B) C) D) for choices · * marks the answer · [lines:3] for written answers · $…$ for math</small></label>
+      <textarea id="ws-src" rows="12" style="font-family:ui-monospace,Menlo,monospace;font-size:14px">${esc(WS.src)}</textarea>
+      <div class="row">
+        <label class="chk">Layout <select id="ws-cols"><option value="1">1 column</option><option value="2">2 columns</option></select></label>
+        <label class="chk"><input type="checkbox" id="ws-sq" ${WS.shuffleQ?'checked':''}> Shuffle questions</label>
+        <label class="chk"><input type="checkbox" id="ws-sc" ${WS.shuffleC?'checked':''}> Shuffle choices</label>
+        <label class="chk">Version <select id="ws-ver">${'ABCD'.split('').map(v=>`<option>${v}</option>`).join('')}</select></label>
+        <label class="chk"><input type="checkbox" id="ws-key" ${WS.key?'checked':''}> Answer key page</label>
+      </div>
+      <div class="row">
+        <button class="btn" data-act="ws-print">🖨 Print / Save PDF</button>
+        <button class="btn ghost" data-act="ws-sample">Load sample</button>
+        <a class="btn ghost" href="#prompt-1">✨ Write questions with AI</a>
+        <span class="muted" id="ws-count"></span>
+      </div>
+    </div>
+    <div id="ws-prev"></div>
+  </div>
+  <div class="print-only" id="ws-print"></div>`;
+}
+function mountWorksheet(){ $('#ws-cols').value=WS.cols; $('#ws-ver').value=WS.version; wsRender(); }
+let wsTimer=0;
+function wsRender(){
+  const el=$('#ws-prev'); if(!el) return;
+  el.innerHTML=wsPaperHTML();
+  const n=parseWS(WS.src).length; $('#ws-count').textContent=n+' question'+(n===1?'':'s');
+  typesetMath(el);
+}
+function wsLater(){ wsSave(); clearTimeout(wsTimer); wsTimer=setTimeout(wsRender,300); }
+
+/* math (MathJax, loaded only when needed) */
+let mjLoading=null;
+function typesetMath(el){
+  if(!/\$|\\\(/.test(el.textContent)) return Promise.resolve();
+  if(!mjLoading){
+    window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'local'},startup:{typeset:false}};
+    mjLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js';s.async=true;s.onload=res;s.onerror=rej;document.head.appendChild(s);})
+      .then(()=>MathJax.startup.promise);
+  }
+  return mjLoading.then(()=>MathJax.typesetPromise([el])).catch(()=>{});
+}
+
+/* ================= GUIDES & AI PROMPTS ================= */
+function md(src){
+  const inline=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/\[(.+?)\]\(((?:https?:\/\/|#)[^\s)]+)\)/g,'<a href="$2">$1</a>');
+  const out=[]; let list=null;
+  const close=()=>{ if(list){ out.push(`</${list}>`); list=null; } };
+  String(src||'').replace(/\r/g,'').split('\n').forEach(l=>{
+    let m;
+    if(m=l.match(/^(#{1,3})\s+(.*)/)){ close(); out.push(`<h${m[1].length+2}>${inline(m[2])}</h${m[1].length+2}>`); }
+    else if(m=l.match(/^\s*[-•]\s+(.*)/)){ if(list!=='ul'){close();out.push('<ul>');list='ul';} out.push(`<li>${inline(m[1])}</li>`); }
+    else if(m=l.match(/^\s*\d+[\.\)]\s+(.*)/)){ if(list!=='ol'){close();out.push('<ol>');list='ol';} out.push(`<li>${inline(m[1])}</li>`); }
+    else if(l.trim()===''){ close(); }
+    else { close(); out.push(`<p>${inline(l)}</p>`); }
+  });
+  close(); return out.join('');
+}
+function viewGuides(){
+  const list=(DATA.guides||[]).filter(visible), cats=[...new Set(list.map(g=>g.Category||'General'))];
+  return demoNote() + `<h2 style="margin-top:0">Guides</h2>` + (list.length ? cats.map(c=>`<h2>${esc(c)}</h2><div class="grid">${
+    list.filter(g=>(g.Category||'General')===c).map(g=>`<a class="card app tool-card" href="#guide-${esc(g.Order)}"><b>${esc(g.Title)}</b><p>${esc(g.Summary)}</p><span class="btn ghost sm" style="align-self:flex-start">Read →</span></a>`).join('')}</div>`).join('')
+    : `<div class="empty">No guides yet.</div>`);
+}
+function viewGuide(o){
+  const g=(DATA.guides||[]).find(x=>String(x.Order)===String(o));
+  if(!g||!visible(g)) return `<a class="back" href="#guides">← Guides</a><div class="empty">Guide not found.</div>`;
+  return `<a class="back" href="#guides">← Guides</a><article class="panel article">
+    <span class="chip">${esc(g.Category||'General')}</span><h2 style="margin-top:8px">${esc(g.Title)}</h2>${md(g.Body)}</article>`;
+}
+const PV = loadJSON('ep_pvals') || {};
+const pFields = t => [...new Set((String(t).match(/\{\{\s*([^}]+?)\s*\}\}/g)||[]).map(x=>x.replace(/[{}]/g,'').trim()))];
+const pFill = t => String(t).replace(/\{\{\s*([^}]+?)\s*\}\}/g,(m,k)=>PV[k.trim()]?PV[k.trim()]:`[${k.trim()}]`);
+function viewPrompts(){
+  const list=(DATA.prompts||[]).filter(visible), cats=[...new Set(list.map(p=>p.Category||'General'))];
+  return demoNote() + `<h2 style="margin-top:0">AI Prompts</h2><p class="muted" style="margin-top:-6px">Fill in the blanks, copy, and paste into Claude or any AI assistant.</p>` +
+    (list.length ? cats.map(c=>`<h2>${esc(c)}</h2><div class="grid">${list.filter(p=>(p.Category||'General')===c).map(p=>`<a class="card app tool-card" href="#prompt-${esc(p.Order)}"><b>${esc(p.Title)}</b><p>${esc(p.Description)}</p><span class="btn ghost sm" style="align-self:flex-start">Use →</span></a>`).join('')}</div>`).join('')
+    : `<div class="empty">No prompts yet.</div>`);
+}
+let curPrompt=null;
+function viewPrompt(o){
+  const p=(DATA.prompts||[]).find(x=>String(x.Order)===String(o)); curPrompt=p;
+  if(!p||!visible(p)) return `<a class="back" href="#prompts">← AI Prompts</a><div class="empty">Prompt not found.</div>`;
+  const f=pFields(p.Prompt);
+  return `<a class="back" href="#prompts">← AI Prompts</a><h2 style="margin-top:0">${esc(p.Title)}</h2><p class="muted" style="margin-top:-6px">${esc(p.Description)}</p>
+  <div class="tool2">
+    <div class="panel"><b>Fill in</b>${f.length?f.map(k=>`<label class="lbl" style="margin-top:8px">${esc(k)}</label><input type="text" data-pf="${esc(k)}" value="${esc(PV[k]||'')}">`).join(''):'<p class="muted">Nothing to fill in — just copy.</p>'}</div>
+    <div class="panel"><b>Your prompt</b><textarea id="p-out" rows="14" readonly style="font-size:14px">${esc(pFill(p.Prompt))}</textarea>
+      <div class="row"><button class="btn" data-act="p-copy">📋 Copy prompt</button>${p.Next?`<a class="btn ghost" href="${esc(p.Next)}">Next step →</a>`:''}</div></div>
+  </div>`;
+}
+document.addEventListener('input',e=>{
+  const k=e.target.dataset && e.target.dataset.pf;
+  if(k!==undefined && curPrompt){ PV[k]=e.target.value; saveJSON('ep_pvals',PV); const o=$('#p-out'); if(o) o.value=pFill(curPrompt.Prompt); }
+});
+
+TOOL_VIEWS.screencast={view:viewScreencast, mount:mountScreencast};
+TOOL_VIEWS.worksheet={view:viewWorksheet, mount:mountWorksheet};
+document.addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='ws-title'){WS.title=e.target.value;wsLater();}
+  else if(id==='ws-instr'){WS.instr=e.target.value;wsLater();}
+  else if(id==='ws-src'){WS.src=e.target.value;wsLater();}
+});
+document.addEventListener('change',e=>{
+  const id=e.target.id;
+  if(id==='sc-cam'){SC.opts.cam=e.target.checked;save('ep_sccam',e.target.checked?'1':'0');}
+  else if(id==='sc-mic'){SC.opts.mic=e.target.checked;save('ep_scmic',e.target.checked?'1':'0');}
+  else if(id==='ws-cols'){WS.cols=e.target.value;wsSave();wsRender();}
+  else if(id==='ws-ver'){WS.version=e.target.value;wsSave();wsRender();}
+  else if(id==='ws-sq'){WS.shuffleQ=e.target.checked;wsSave();wsRender();}
+  else if(id==='ws-sc'){WS.shuffleC=e.target.checked;wsSave();wsRender();}
+  else if(id==='ws-key'){WS.key=e.target.checked;wsSave();wsRender();}
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const acts={
+    'sc-start':scStart, 'sc-stop':()=>SC.rec&&SC.rec.stop(),
+    'sc-pause':()=>{SC.rec.pause();SC.acc+=Date.now()-SC.t0;scUI();scTime();},
+    'sc-resume':()=>{SC.rec.resume();SC.t0=Date.now();scUI();},
+    'sc-pip':()=>{try{SC.camVideo.requestPictureInPicture().catch(()=>toast('Pop-out not allowed here'));}catch(err){toast('Pop-out not supported');}},
+    'ws-print':()=>{const p=$('#ws-print');p.innerHTML=$('#ws-prev').innerHTML;doPrint();},
+    'ws-sample':()=>{WS.src=WS_SAMPLE;$('#ws-src').value=WS_SAMPLE;wsSave();wsRender();},
+    'p-copy':()=>copyText($('#p-out').value)
+  };
+  if(acts[b.dataset.act]){ e.preventDefault(); acts[b.dataset.act](); }
+});
+
+/* ===== router ===== */
+function route(){
+  if(!DATA) return;
+  const h = (location.hash||'#home').slice(1);
+  let v = h.startsWith('video-') ? 'videos' : h.startsWith('tool-') ? 'tools' : h.startsWith('guide') ? 'guides' : h.startsWith('prompt') ? 'prompts' : h;
+  if(['tools','guides','prompts'].includes(v) && role!=='teacher') v = 'home';
+  if(typeof tClose==='function' && document.getElementById('prompter')) tClose();
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on', a.dataset.v===v));
+  const app = $('#app');
+  if(h.startsWith('video-')) app.innerHTML = viewVideo(h.slice(6));
+  else if(v==='apps') app.innerHTML = viewApps();
+  else if(v==='videos'){ app.innerHTML = viewVideos(); renderVideoList(); }
+  else if(v==='guides') app.innerHTML = h.startsWith('guide-') ? viewGuide(h.slice(6)) : viewGuides();
+  else if(v==='prompts') app.innerHTML = h.startsWith('prompt-') ? viewPrompt(h.slice(7)) : viewPrompts();
+  else if(v==='tools'){
+    const tv = TOOL_VIEWS[h.slice(5)];
+    if(h.startsWith('tool-') && tv){ app.innerHTML = tv.view(); tv.mount(); }
+    else app.innerHTML = viewTools();
+  }
+  else app.innerHTML = viewHome();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', route);
+
+/* ===== events ===== */
+document.addEventListener('input', e=>{ if(e.target.id==='q'){ vQuery = e.target.value; renderVideoList(); } });
+document.addEventListener('click', e=>{
+  const f = e.target.closest('.filters button');
+  if(f){ vFilter = f.dataset.s; document.querySelectorAll('.filters button').forEach(b=>b.classList.toggle('on', b===f)); renderVideoList(); return; }
+  const t = e.target.closest('.toc button');
+  if(t){ seek(Number(t.dataset.s)); }
+});
+
+init();
+</script>
+</body>
+</html>
